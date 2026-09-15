@@ -223,7 +223,13 @@ private fun InputRow(text: String, onTextChange: (String) -> Unit, onSubmit: () 
     }
 }
 
-/** Історія 5, R16: українське слово без головної мови — вибір словника. */
+/** Історія 5, R16: українське слово без головної мови — вибір словника.
+ *
+ * `confirmButton`/`dismissButton` тут НЕ "ок"/"скасувати" — це два рівноправні
+ * вибори (німецький/англійський словник), просто позичені в `AlertDialog`
+ * заради готового layout-у "дві кнопки поруч". Скасувати нема куди: слово вже
+ * визначене як українське, словник обрати необхідно (звідси й порожній
+ * `onDismissRequest` — тап поза діалогом/back не закриває його). */
 @Composable
 private fun ChooseDictionaryDialog(onChoose: (DictionaryLanguage) -> Unit) {
     AlertDialog(

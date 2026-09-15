@@ -155,59 +155,63 @@ class HomeViewModel(
     }
 
     /** Історії 5–6, 8–9 (R16, R06/R07, R08): українське слово -> до двох перекладів
-     * словниковою мовою + приклад тією ж мовою (targetLang службового виклику). */
+     * словниковою мовою + приклад тією ж мовою (targetLang службового виклику —
+     * дефолтна мова словника, тож один виклик закриває і кандидатів, і приклад). */
     private fun translateFromUkrainian(ukrainianWord: String, dictionaryLanguage: DictionaryLanguage) {
-        pendingRetry = { translateFromUkrainian(ukrainianWord, dictionaryLanguage) }
-        scope.launch {
-            runCatching {
-                translationService.translate(ukrainianWord, Language.UKRAINIAN, dictionaryLanguage.toTranslationLanguage())
-            }.onSuccess { result ->
-                pendingRetry = null
-                _uiState.update {
-                    it.copy(
-                        dialog = HomeDialog.Confirm(
-                            WordCapture(
-                                ukrainian = ukrainianWord,
-                                translation1 = result.candidates.getOrElse(0) { ukrainianWord },
-                                translation2 = result.candidates.getOrNull(1),
-                                example = result.example,
-                                isExampleGenerated = result.isExampleGenerated,
-                                dictionaryLanguage = dictionaryLanguage,
-                            ),
-                        ),
-                    )
-                }
-            }.onFailure { error -> handleTranslationFailure(error) }
+        runTranslation(retry = { translateFromUkrainian(ukrainianWord, dictionaryLanguage) }) {
+            val result = translationService.translate(ukrainianWord, Language.UKRAINIAN, dictionaryLanguage.toTranslationLanguage())
+            WordCapture(
+                ukrainian = ukrainianWord,
+                translation1 = result.candidates.getOrElse(0) { ukrainianWord },
+                translation2 = result.candidates.getOrNull(1),
+                example = result.example,
+                isExampleGenerated = result.isExampleGenerated,
+                dictionaryLanguage = dictionaryLanguage,
+            )
         }
     }
 
-    /** Історія 7 (R17): німецьке/англійське слово -> один переклад українською +
-     * приклад тією ж мовою (targetLang виклику = UKRAINIAN, як і кандидати —
-     * `TranslationServiceImpl` завжди повертає приклад мовою targetLang, доказ —
-     * `TranslationServiceImplTest`); translation1 — саме введене/розпізнане слово,
-     * воно вже словниковою мовою, повторний виклик перекладу для нього не потрібен. */
+    /** Історія 7 (R17): німецьке/англійське слово -> один переклад українською.
+     * Приклад — ОБОВ'ЯЗКОВО мовою словника (R08: "до кожного нового слова... мовою
+     * словника", без винятку напрямку; підтверджено шаблонами R08.1 — "Das ist X."/
+     * "This is X.", ніколи українською). `TranslationServiceImpl` завжди повертає
+     * `example` мовою `targetLang` виклику (закріплено `TranslationServiceImplTest`),
+     * тому один виклик word->UKRAINIAN дає лише український відповідник; другий,
+     * UKRAINIAN->dictionaryLanguage, — саме за прикладом словниковою мовою.
+     * `translation1` лишається введеним/розпізнаним словом з першого виклику —
+     * другий виклик його не перезаписує (слово вже словниковою мовою як є). */
     private fun translateForeignWord(word: String, sourceLang: Language, dictionaryLanguage: DictionaryLanguage) {
-        pendingRetry = { translateForeignWord(word, sourceLang, dictionaryLanguage) }
+        runTranslation(retry = { translateForeignWord(word, sourceLang, dictionaryLanguage) }) {
+            val toUkrainian = translationService.translate(word, sourceLang, Language.UKRAINIAN)
+            val ukrainianValue = toUkrainian.candidates.getOrElse(0) { word }
+            val example = translationService.translate(ukrainianValue, Language.UKRAINIAN, dictionaryLanguage.toTranslationLanguage())
+            WordCapture(
+                ukrainian = ukrainianValue,
+                translation1 = word,
+                translation2 = null,
+                example = example.example,
+                isExampleGenerated = example.isExampleGenerated,
+                dictionaryLanguage = dictionaryLanguage,
+            )
+        }
+    }
+
+    /** Спільна форма обох гілок перекладу (craft-рев'ю): запам'ятовує [retry] на випадок
+     * `TranslationUnavailableException` (R14.2) і перетворює успіх на діалог підтвердження.
+     * [buildCapture] може викликати `translationService.translate` кілька разів (гілка
+     * "іноземне слово" вище) — весь блок під одним `runCatching`, тож збій будь-якого
+     * виклику всередині веде до того самого діалогу "повторити", а `retry()` повторює
+     * від початку, включно з уже вдалими викликами (простіше й надійніше часткового
+     * відновлення, узгоджено з "не ускладнювати", spec.md п.8 брифа). */
+    private fun runTranslation(retry: () -> Unit, buildCapture: suspend () -> WordCapture) {
+        pendingRetry = retry
         scope.launch {
-            runCatching {
-                translationService.translate(word, sourceLang, Language.UKRAINIAN)
-            }.onSuccess { result ->
-                pendingRetry = null
-                _uiState.update {
-                    it.copy(
-                        dialog = HomeDialog.Confirm(
-                            WordCapture(
-                                ukrainian = result.candidates.getOrElse(0) { word },
-                                translation1 = word,
-                                translation2 = null,
-                                example = result.example,
-                                isExampleGenerated = result.isExampleGenerated,
-                                dictionaryLanguage = dictionaryLanguage,
-                            ),
-                        ),
-                    )
+            runCatching { buildCapture() }
+                .onSuccess { capture ->
+                    pendingRetry = null
+                    _uiState.update { it.copy(dialog = HomeDialog.Confirm(capture)) }
                 }
-            }.onFailure { error -> handleTranslationFailure(error) }
+                .onFailure { error -> handleTranslationFailure(error) }
         }
     }
 
