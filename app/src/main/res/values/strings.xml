@@ -8,4 +8,6 @@
 
     <string name="home_screen_placeholder">Головний екран</string>
     <string name="dictionaries_screen_placeholder">Словники</string>
+
+    <string name="default_dictionary_name">Основний</string>
 </resources>

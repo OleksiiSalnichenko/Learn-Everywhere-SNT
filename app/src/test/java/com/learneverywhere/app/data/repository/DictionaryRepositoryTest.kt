@@ -34,7 +34,7 @@ class DictionaryRepositoryTest {
         database = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
             .allowMainThreadQueries()
             .build()
-        repository = DictionaryRepositoryImpl(database.dictionaryDao(), database.wordEntryDao())
+        repository = DictionaryRepositoryImpl(database.dictionaryDao(), database.wordEntryDao(), context)
     }
 
     @After
@@ -72,5 +72,24 @@ class DictionaryRepositoryTest {
         val germanDictionaries = repository.dictionaries(DictionaryLanguage.GERMAN).first()
         assertEquals(1, germanDictionaries.size)
         assertEquals("Мій словник", germanDictionaries.first().name)
+    }
+
+    @Test
+    fun `setDefault keeps exactly one default dictionary per language after repeated calls`() = runBlocking {
+        // Атомарність гарантується `@Transaction` на DictionaryDao.setDefault
+        // (рев'ю тікета 01): скільки б разів дефолт не перемикали, рівно
+        // один словник мови лишається дефолтним — ніколи ні одного, ніколи
+        // два одразу.
+        val first = repository.createDictionary(DictionaryLanguage.GERMAN, "Перший")
+        val second = repository.createDictionary(DictionaryLanguage.GERMAN, "Другий")
+        val third = repository.createDictionary(DictionaryLanguage.GERMAN, "Третій")
+
+        repository.setDefault(second.id)
+        repository.setDefault(third.id)
+        repository.setDefault(first.id)
+
+        val defaults = repository.dictionaries(DictionaryLanguage.GERMAN).first().filter { it.isDefault }
+        assertEquals(1, defaults.size)
+        assertEquals(first.id, defaults.single().id)
     }
 }

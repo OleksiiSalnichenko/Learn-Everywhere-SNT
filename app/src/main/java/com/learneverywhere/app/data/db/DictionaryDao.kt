@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import com.learneverywhere.app.data.model.DictionaryLanguage
 import kotlinx.coroutines.flow.Flow
@@ -40,4 +41,19 @@ interface DictionaryDao {
 
     @Query("UPDATE dictionaries SET name = :name WHERE id = :id")
     suspend fun rename(id: Long, name: String)
+
+    /**
+     * Зняття прапорця зі старого дефолтного словника мови і встановлення
+     * нового — в одній транзакції (Room `@Transaction` на методі з тілом
+     * обгортає обидва suspend-виклики). Якщо процес впаде між ними, стан
+     * після відкату завжди консистентний: або старий дефолтний лишається,
+     * або новий уже встановлений — ніколи ні одного і ніколи два (рев'ю
+     * тікета 01, вимога специфікації «гарантується транзакцією»).
+     */
+    @Transaction
+    suspend fun setDefault(id: Long) {
+        val target = getById(id) ?: return
+        clearDefaultFlag(target.language)
+        setDefaultFlag(id)
+    }
 }

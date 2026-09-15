@@ -8,4 +8,6 @@
 
     <string name="home_screen_placeholder">Home screen</string>
     <string name="dictionaries_screen_placeholder">Dictionaries</string>
+
+    <string name="default_dictionary_name">Main</string>
 </resources>

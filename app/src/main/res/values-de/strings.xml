@@ -8,4 +8,6 @@
 
     <string name="home_screen_placeholder">Startbildschirm</string>
     <string name="dictionaries_screen_placeholder">Wörterbücher</string>
+
+    <string name="default_dictionary_name">Hauptwörterbuch</string>
 </resources>

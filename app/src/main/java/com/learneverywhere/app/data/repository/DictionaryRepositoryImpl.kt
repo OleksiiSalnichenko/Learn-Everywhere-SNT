@@ -1,6 +1,8 @@
 package com.learneverywhere.app.data.repository
 
+import android.content.Context
 import android.net.Uri
+import com.learneverywhere.app.R
 import com.learneverywhere.app.data.db.DictionaryDao
 import com.learneverywhere.app.data.db.DictionaryEntity
 import com.learneverywhere.app.data.db.WordEntryDao
@@ -11,18 +13,22 @@ import com.learneverywhere.app.data.model.WordEntry
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-/**
- * Ім'я дефолтного словника, який система створює сама, коли для мови ще
- * немає жодного (історії 16/17). Це дані (початковий контент), а не текст
- * інтерфейсу, тому не в string resources — користувач може перейменувати
- * словник будь-коли (історія 41).
- */
-private const val DEFAULT_DICTIONARY_NAME = "Основний"
-
 class DictionaryRepositoryImpl(
     private val dictionaryDao: DictionaryDao,
     private val wordEntryDao: WordEntryDao,
+    private val context: Context,
 ) : DictionaryRepository {
+
+    /**
+     * Ім'я дефолтного словника, який система створює сама, коли для мови ще
+     * немає жодного (історії 16/17). Текст видимий користувачу (заголовок
+     * словника в UI), тому йде через `res/values/strings.xml` разом з
+     * перекладами (`values-en`, `values-de`), а не хардкодиться — користувач
+     * може перейменувати словник будь-коли (історія 41), це лише початкове
+     * значення.
+     */
+    private val defaultDictionaryName: String
+        get() = context.getString(R.string.default_dictionary_name)
 
     override fun dictionaries(language: DictionaryLanguage): Flow<List<Dictionary>> =
         dictionaryDao.observeByLanguage(language).map { list -> list.map { it.toDomain() } }
@@ -33,18 +39,17 @@ class DictionaryRepositoryImpl(
     override suspend fun createDictionary(language: DictionaryLanguage, name: String): Dictionary {
         // Перший словник мови одразу стає дефолтним — інакше мова лишається
         // без жодного дефолтного словника, що суперечить історії 15.
-        val isFirstForLanguage = dictionaryDao.countByLanguage(language) == 0
-        val entity = DictionaryEntity(language = language, name = name, isDefault = isFirstForLanguage)
+        val entity = DictionaryEntity(language = language, name = name, isDefault = isFirstDictionaryForLanguage(language))
         val id = dictionaryDao.insert(entity)
         return entity.copy(id = id).toDomain()
     }
 
     override suspend fun setDefault(id: Long) {
-        val target = dictionaryDao.getById(id) ?: return
-        // Спершу знімаємо прапорець зі старого дефолтного цієї ж мови, потім
-        // ставимо новому — рівно один дефолтний на мову завжди (історія 18).
-        dictionaryDao.clearDefaultFlag(target.language)
-        dictionaryDao.setDefaultFlag(id)
+        // Зняття прапорця зі старого дефолтного й встановлення нового —
+        // в одній DAO-транзакції (`@Transaction` на `DictionaryDao.setDefault`),
+        // тому рівно один дефолтний на мову гарантований навіть при падінні
+        // між двома записами (історія 18, рев'ю тікета 01).
+        dictionaryDao.setDefault(id)
     }
 
     override suspend fun rename(id: Long, name: String) {
@@ -100,13 +105,17 @@ class DictionaryRepositoryImpl(
 
     override suspend fun ensureDefaultDictionaries() {
         for (language in DictionaryLanguage.entries) {
-            if (dictionaryDao.countByLanguage(language) == 0) {
+            if (isFirstDictionaryForLanguage(language)) {
                 dictionaryDao.insert(
-                    DictionaryEntity(language = language, name = DEFAULT_DICTIONARY_NAME, isDefault = true),
+                    DictionaryEntity(language = language, name = defaultDictionaryName, isDefault = true),
                 )
             }
         }
     }
+
+    /** Чи це буде перший словник цієї мови — спільна перевірка для [createDictionary] і [ensureDefaultDictionaries]. */
+    private suspend fun isFirstDictionaryForLanguage(language: DictionaryLanguage): Boolean =
+        dictionaryDao.countByLanguage(language) == 0
 
     private fun DictionaryEntity.toDomain() = Dictionary(id = id, language = language, name = name, isDefault = isDefault)
 

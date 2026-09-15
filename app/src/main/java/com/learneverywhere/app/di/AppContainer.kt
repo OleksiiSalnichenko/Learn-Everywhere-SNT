@@ -15,10 +15,11 @@ import com.learneverywhere.app.settings.settingsDataStore
  */
 class AppContainer(context: Context) {
 
-    private val database: AppDatabase = AppDatabase.build(context)
+    private val appContext = context.applicationContext
+    private val database: AppDatabase = AppDatabase.build(appContext)
 
     val dictionaryRepository: DictionaryRepository =
-        DictionaryRepositoryImpl(database.dictionaryDao(), database.wordEntryDao())
+        DictionaryRepositoryImpl(database.dictionaryDao(), database.wordEntryDao(), appContext)
 
     val settingsRepository: SettingsRepository =
         SettingsRepositoryImpl(context.settingsDataStore)
