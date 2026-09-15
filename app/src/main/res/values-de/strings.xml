@@ -65,4 +65,8 @@
     <string name="settings_seconds_unit">s</string>
 
     <string name="settings_reset_button">Auf Standard zurücksetzen</string>
+
+    <string name="playback_pause_content_description">Pause</string>
+    <string name="playback_resume_content_description">Abspielen</string>
+    <string name="playback_skip_next_content_description">Nächstes Wort</string>
 </resources>

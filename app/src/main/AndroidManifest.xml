@@ -6,6 +6,12 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Фонове програвання (R45, тікет 08): foreground-сервіс з медіа-сесією, -->
+    <!-- живий з вимкненим екраном. FOREGROUND_SERVICE_MEDIA_PLAYBACK — обов'язковий -->
+    <!-- супутник foregroundServiceType="mediaPlayback" на API 34+. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+
     <application
         android:name=".LearnEverywhereApplication"
         android:allowBackup="true"
@@ -24,6 +30,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- playback/ (тікет 08) — foreground-сервіс з androidx.media3 MediaSession, -->
+        <!-- запускається й зупиняється самим PlaybackController (не має свого intent-filter). -->
+        <service
+            android:name=".playback.PlaybackMediaService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback">
+            <intent-filter>
+                <action android:name="androidx.media3.session.MediaSessionService" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>
