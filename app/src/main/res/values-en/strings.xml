@@ -7,7 +7,32 @@
     <string name="nav_dictionaries_content_description">Dictionaries</string>
 
     <string name="home_screen_placeholder">Home screen</string>
-    <string name="dictionaries_screen_placeholder">Dictionaries</string>
 
     <string name="default_dictionary_name">Main</string>
+
+    <string name="dictionaries_tab_german_flag">🇩🇪</string>
+    <string name="dictionaries_tab_english_flag">🇬🇧</string>
+    <string name="dictionaries_tab_german_description">German</string>
+    <string name="dictionaries_tab_english_description">English</string>
+
+    <string name="dictionaries_header_label">Default dictionary</string>
+    <string name="dictionaries_header_no_words">Add some words first</string>
+    <string name="dictionaries_play_content_description">Play the default dictionary</string>
+
+    <string name="dictionaries_default_badge">Default</string>
+    <string name="dictionaries_set_default_content_description">Make default</string>
+
+    <string name="dictionaries_add_content_description">Add dictionary</string>
+    <string name="dictionaries_add_dialog_title">New dictionary</string>
+    <string name="dictionaries_add_dialog_label">Dictionary name</string>
+    <string name="dictionaries_add_dialog_confirm">Create</string>
+    <string name="dictionaries_add_dialog_cancel">Cancel</string>
+
+    <string name="dictionaries_empty_title">No dictionaries yet</string>
+    <string name="dictionaries_empty_message">Add your first dictionary with the "+" button</string>
+
+    <plurals name="dictionaries_word_count">
+        <item quantity="one">%d word</item>
+        <item quantity="other">%d words</item>
+    </plurals>
 </resources>
