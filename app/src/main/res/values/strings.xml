@@ -10,4 +10,34 @@
     <string name="dictionaries_screen_placeholder">Словники</string>
 
     <string name="default_dictionary_name">Основний</string>
+
+    <string name="settings_title">Налаштування</string>
+    <string name="settings_back_content_description">Назад</string>
+    <string name="settings_open_content_description">Відкрити налаштування</string>
+
+    <string name="settings_section_main_language">Головна мова</string>
+    <string name="settings_main_language_none">Ніяка</string>
+    <string name="settings_main_language_german">Німецька</string>
+    <string name="settings_main_language_english">Англійська</string>
+
+    <string name="settings_section_interface_language">Мова інтерфейсу</string>
+    <string name="settings_interface_language_ukrainian">Українська</string>
+    <string name="settings_interface_language_english">Англійська</string>
+    <string name="settings_interface_language_german">Німецька</string>
+
+    <string name="settings_section_playback">Програвання</string>
+    <string name="settings_loop_label">Зациклити</string>
+    <string name="settings_shuffle_label">Випадковий порядок</string>
+    <string name="settings_ukrainian_repeat_count_label">Повторів українською</string>
+    <string name="settings_ukrainian_repeat_pause_label">Пауза після української</string>
+    <string name="settings_translation_delay_label">Пауза перед перекладом</string>
+    <string name="settings_translation_repeat_count_label">Повторів перекладу</string>
+    <string name="settings_translation_repeat_pause_label">Пауза після перекладу</string>
+    <string name="settings_example_pause_label">Пауза після прикладу</string>
+    <string name="settings_next_word_pause_label">Пауза перед наступним словом</string>
+    <string name="settings_include_example_label">Показувати приклад</string>
+    <string name="settings_show_card_label">Показувати картку</string>
+    <string name="settings_seconds_unit">с</string>
+
+    <string name="settings_reset_button">Скинути до типових</string>
 </resources>
