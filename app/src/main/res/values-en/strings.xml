@@ -84,4 +84,8 @@
     <string name="settings_seconds_unit">s</string>
 
     <string name="settings_reset_button">Reset to defaults</string>
+
+    <string name="playback_pause_content_description">Pause</string>
+    <string name="playback_resume_content_description">Play</string>
+    <string name="playback_skip_next_content_description">Next word</string>
 </resources>

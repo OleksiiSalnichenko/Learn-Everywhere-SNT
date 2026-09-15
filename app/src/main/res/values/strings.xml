@@ -86,4 +86,8 @@
     <string name="settings_seconds_unit">с</string>
 
     <string name="settings_reset_button">Скинути до типових</string>
+
+    <string name="playback_pause_content_description">Пауза</string>
+    <string name="playback_resume_content_description">Відтворити</string>
+    <string name="playback_skip_next_content_description">Наступне слово</string>
 </resources>

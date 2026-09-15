@@ -69,6 +69,9 @@ dependencies {
 
     implementation(libs.androidx.datastore.preferences)
 
+    // playback/ — foreground-сервіс і медіа-сесія (interfaces.md §playback, тікет 08)
+    implementation(libs.androidx.media3.session)
+
     // translation/ — клієнт MyMemory Translation API (interfaces.md §translation)
     implementation(libs.squareup.okhttp)
 
