@@ -69,11 +69,17 @@ dependencies {
 
     implementation(libs.androidx.datastore.preferences)
 
+    // translation/ — клієнт MyMemory Translation API (interfaces.md §translation)
+    implementation(libs.squareup.okhttp)
+
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.core)
     testImplementation(platform(libs.androidx.compose.bom))
+    // Реальна реалізація org.json для юніт-тестів на JVM — android.jar у
+    // unit-тестах містить лише заглушки (кидають виняток при виклику).
+    testImplementation(libs.org.json)
 }
 
 // Robolectric 4.17 читає внутрішні поля FileDescriptor через рефлексію
