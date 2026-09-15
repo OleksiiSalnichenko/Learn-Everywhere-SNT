@@ -6,9 +6,31 @@
     <string name="nav_home_content_description">Головний екран</string>
     <string name="nav_dictionaries_content_description">Словники</string>
 
-    <string name="home_screen_placeholder">Головний екран</string>
-
     <string name="default_dictionary_name">Основний</string>
+
+    <string name="home_mic_content_description">Сказати слово</string>
+    <string name="home_mic_listening_content_description">Слухаю…</string>
+    <string name="home_input_placeholder">або введи слово</string>
+    <string name="home_input_submit">Ок</string>
+
+    <string name="home_choose_dictionary_title">До якого словника додати?</string>
+    <string name="home_choose_dictionary_german">Німецький</string>
+    <string name="home_choose_dictionary_english">Англійський</string>
+
+    <string name="home_confirm_title">Додати слово?</string>
+    <string name="home_confirm_translation_label">Переклад</string>
+    <string name="home_confirm_example_label">Приклад</string>
+    <string name="home_confirm_ok">Ок</string>
+    <string name="home_confirm_cancel">Скасувати</string>
+
+    <string name="home_recognition_failed_title">Не вдалося розпізнати</string>
+    <string name="home_recognition_failed_message">Спробуй сказати слово ще раз.</string>
+    <string name="home_recognition_failed_ok">Гаразд</string>
+
+    <string name="home_translation_failed_title">Переклад недоступний</string>
+    <string name="home_translation_failed_message">Перевір з\'єднання з інтернетом і спробуй ще раз.</string>
+    <string name="home_translation_failed_retry">Повторити</string>
+    <string name="home_translation_failed_cancel">Скасувати</string>
 
     <string name="dictionaries_tab_german_flag">🇩🇪</string>
     <string name="dictionaries_tab_english_flag">🇬🇧</string>
