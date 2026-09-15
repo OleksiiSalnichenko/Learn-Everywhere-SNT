@@ -6,9 +6,31 @@
     <string name="nav_home_content_description">Home</string>
     <string name="nav_dictionaries_content_description">Dictionaries</string>
 
-    <string name="home_screen_placeholder">Home screen</string>
-
     <string name="default_dictionary_name">Main</string>
+
+    <string name="home_mic_content_description">Say a word</string>
+    <string name="home_mic_listening_content_description">Listening…</string>
+    <string name="home_input_placeholder">or type a word</string>
+    <string name="home_input_submit">Ok</string>
+
+    <string name="home_choose_dictionary_title">Which dictionary should this go to?</string>
+    <string name="home_choose_dictionary_german">German</string>
+    <string name="home_choose_dictionary_english">English</string>
+
+    <string name="home_confirm_title">Add this word?</string>
+    <string name="home_confirm_translation_label">Translation</string>
+    <string name="home_confirm_example_label">Example</string>
+    <string name="home_confirm_ok">Ok</string>
+    <string name="home_confirm_cancel">Cancel</string>
+
+    <string name="home_recognition_failed_title">Couldn\'t recognize that</string>
+    <string name="home_recognition_failed_message">Try saying the word again.</string>
+    <string name="home_recognition_failed_ok">OK</string>
+
+    <string name="home_translation_failed_title">Translation unavailable</string>
+    <string name="home_translation_failed_message">Check your internet connection and try again.</string>
+    <string name="home_translation_failed_retry">Retry</string>
+    <string name="home_translation_failed_cancel">Cancel</string>
 
     <string name="dictionaries_tab_german_flag">🇩🇪</string>
     <string name="dictionaries_tab_english_flag">🇬🇧</string>

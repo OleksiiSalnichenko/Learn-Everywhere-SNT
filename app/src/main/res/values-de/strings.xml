@@ -6,9 +6,31 @@
     <string name="nav_home_content_description">Startbildschirm</string>
     <string name="nav_dictionaries_content_description">Wörterbücher</string>
 
-    <string name="home_screen_placeholder">Startbildschirm</string>
-
     <string name="default_dictionary_name">Hauptwörterbuch</string>
+
+    <string name="home_mic_content_description">Wort sagen</string>
+    <string name="home_mic_listening_content_description">Ich höre zu…</string>
+    <string name="home_input_placeholder">oder Wort eingeben</string>
+    <string name="home_input_submit">Ok</string>
+
+    <string name="home_choose_dictionary_title">Zu welchem Wörterbuch hinzufügen?</string>
+    <string name="home_choose_dictionary_german">Deutsch</string>
+    <string name="home_choose_dictionary_english">Englisch</string>
+
+    <string name="home_confirm_title">Wort hinzufügen?</string>
+    <string name="home_confirm_translation_label">Übersetzung</string>
+    <string name="home_confirm_example_label">Beispiel</string>
+    <string name="home_confirm_ok">Ok</string>
+    <string name="home_confirm_cancel">Abbrechen</string>
+
+    <string name="home_recognition_failed_title">Nicht erkannt</string>
+    <string name="home_recognition_failed_message">Versuche, das Wort noch einmal zu sagen.</string>
+    <string name="home_recognition_failed_ok">Ok</string>
+
+    <string name="home_translation_failed_title">Übersetzung nicht verfügbar</string>
+    <string name="home_translation_failed_message">Prüfe deine Internetverbindung und versuche es erneut.</string>
+    <string name="home_translation_failed_retry">Erneut versuchen</string>
+    <string name="home_translation_failed_cancel">Abbrechen</string>
 
     <string name="dictionaries_tab_german_flag">🇩🇪</string>
     <string name="dictionaries_tab_english_flag">🇬🇧</string>
