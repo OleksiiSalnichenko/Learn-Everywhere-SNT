@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Голосовий ввід (R14, тікет 03): мікрофон для SpeechRecognizer, -->
+    <!-- інтернет — для мережевого розпізнавання і перекладу (тікет 02). -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:name=".LearnEverywhereApplication"
         android:allowBackup="true"
