@@ -7,7 +7,34 @@
     <string name="nav_dictionaries_content_description">Словники</string>
 
     <string name="home_screen_placeholder">Головний екран</string>
-    <string name="dictionaries_screen_placeholder">Словники</string>
 
     <string name="default_dictionary_name">Основний</string>
+
+    <string name="dictionaries_tab_german_flag">🇩🇪</string>
+    <string name="dictionaries_tab_english_flag">🇬🇧</string>
+    <string name="dictionaries_tab_german_description">Німецька</string>
+    <string name="dictionaries_tab_english_description">Англійська</string>
+
+    <string name="dictionaries_header_label">Дефолтний словник</string>
+    <string name="dictionaries_header_no_words">Спершу додай слова</string>
+    <string name="dictionaries_play_content_description">Програти дефолтний словник</string>
+
+    <string name="dictionaries_default_badge">Дефолтний</string>
+    <string name="dictionaries_set_default_content_description">Зробити дефолтним</string>
+
+    <string name="dictionaries_add_content_description">Додати словник</string>
+    <string name="dictionaries_add_dialog_title">Новий словник</string>
+    <string name="dictionaries_add_dialog_label">Назва словника</string>
+    <string name="dictionaries_add_dialog_confirm">Створити</string>
+    <string name="dictionaries_add_dialog_cancel">Скасувати</string>
+
+    <string name="dictionaries_empty_title">Словників ще немає</string>
+    <string name="dictionaries_empty_message">Додай перший словник кнопкою «+»</string>
+
+    <plurals name="dictionaries_word_count">
+        <item quantity="one">%d слово</item>
+        <item quantity="few">%d слова</item>
+        <item quantity="many">%d слів</item>
+        <item quantity="other">%d слова</item>
+    </plurals>
 </resources>

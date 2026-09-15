@@ -7,7 +7,32 @@
     <string name="nav_dictionaries_content_description">Wörterbücher</string>
 
     <string name="home_screen_placeholder">Startbildschirm</string>
-    <string name="dictionaries_screen_placeholder">Wörterbücher</string>
 
     <string name="default_dictionary_name">Hauptwörterbuch</string>
+
+    <string name="dictionaries_tab_german_flag">🇩🇪</string>
+    <string name="dictionaries_tab_english_flag">🇬🇧</string>
+    <string name="dictionaries_tab_german_description">Deutsch</string>
+    <string name="dictionaries_tab_english_description">Englisch</string>
+
+    <string name="dictionaries_header_label">Standardwörterbuch</string>
+    <string name="dictionaries_header_no_words">Füge zuerst Wörter hinzu</string>
+    <string name="dictionaries_play_content_description">Standardwörterbuch abspielen</string>
+
+    <string name="dictionaries_default_badge">Standard</string>
+    <string name="dictionaries_set_default_content_description">Als Standard festlegen</string>
+
+    <string name="dictionaries_add_content_description">Wörterbuch hinzufügen</string>
+    <string name="dictionaries_add_dialog_title">Neues Wörterbuch</string>
+    <string name="dictionaries_add_dialog_label">Name des Wörterbuchs</string>
+    <string name="dictionaries_add_dialog_confirm">Erstellen</string>
+    <string name="dictionaries_add_dialog_cancel">Abbrechen</string>
+
+    <string name="dictionaries_empty_title">Noch keine Wörterbücher</string>
+    <string name="dictionaries_empty_message">Füge dein erstes Wörterbuch über „+“ hinzu</string>
+
+    <plurals name="dictionaries_word_count">
+        <item quantity="one">%d Wort</item>
+        <item quantity="other">%d Wörter</item>
+    </plurals>
 </resources>
