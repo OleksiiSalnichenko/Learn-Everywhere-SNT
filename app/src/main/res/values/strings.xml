@@ -38,6 +38,25 @@
         <item quantity="other">%d слова</item>
     </plurals>
 
+    <string name="dictionary_detail_back_content_description">Назад до списку словників</string>
+    <string name="dictionary_detail_rename_content_description">Перейменувати словник</string>
+    <string name="dictionary_detail_delete_dictionary_content_description">Видалити словник</string>
+    <string name="dictionary_detail_edit_word_content_description">Редагувати виділене слово</string>
+    <string name="dictionary_detail_delete_word_content_description">Видалити виділене слово</string>
+    <string name="dictionary_detail_search_label">Пошук за українським словом</string>
+    <string name="dictionary_detail_empty_message">Нічого не знайдено</string>
+
+    <string name="dictionary_detail_rename_dialog_title">Перейменувати словник</string>
+    <string name="dictionary_detail_delete_dialog_title">Видалити словник?</string>
+    <string name="dictionary_detail_delete_dialog_message">Словник «%1$s» і всі його слова буде видалено назавжди.</string>
+    <string name="dictionary_detail_edit_word_dialog_title">Редагувати слово</string>
+    <string name="dictionary_detail_field_ukrainian">Українське слово</string>
+    <string name="dictionary_detail_field_translation1">Переклад 1</string>
+    <string name="dictionary_detail_field_translation2">Переклад 2 (необов\'язково)</string>
+    <string name="dictionary_detail_field_example">Приклад речення</string>
+    <string name="dictionary_detail_confirm">Ок</string>
+    <string name="dictionary_detail_cancel">Скасувати</string>
+
     <string name="settings_title">Налаштування</string>
     <string name="settings_back_content_description">Назад</string>
     <string name="settings_open_content_description">Відкрити налаштування</string>

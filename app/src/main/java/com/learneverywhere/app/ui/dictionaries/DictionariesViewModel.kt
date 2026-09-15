@@ -3,6 +3,7 @@ package com.learneverywhere.app.ui.dictionaries
 import com.learneverywhere.app.data.model.Dictionary
 import com.learneverywhere.app.data.model.DictionaryLanguage
 import com.learneverywhere.app.data.model.MainLanguage
+import com.learneverywhere.app.data.model.WordEntry
 import com.learneverywhere.app.data.repository.DictionaryRepository
 import com.learneverywhere.app.settings.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
@@ -73,6 +74,85 @@ class DictionariesViewModel(
         if (trimmed.isEmpty()) return
         val language = selectedLanguage.value
         scope.launch { dictionaryRepository.createDictionary(language, trimmed) }
+    }
+
+    // --- Деталі словника (тікет 07, історія 38/R47) ---------------------------------------
+
+    // null — показаний список; id — показані деталі цього словника на тому ж екрані.
+    private val selectedDictionaryId = MutableStateFlow<Long?>(null)
+    private val selectedWordId = MutableStateFlow<Long?>(null)
+    private val wordSearchQuery = MutableStateFlow("")
+
+    // Читаємо об'єкт словника з тих самих `uiState.items`, а не окремим запитом до
+    // репозиторію — так перейменування (rename) одразу видно і в заголовку деталей,
+    // і в списку (05), бо обидва похідні від одного Flow з DictionaryRepository.
+    private val selectedDictionary: Flow<Dictionary?> =
+        combine(selectedDictionaryId, uiState) { id, ui -> ui.items.firstOrNull { it.dictionary.id == id }?.dictionary }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val selectedDictionaryWords: Flow<List<WordEntry>> =
+        selectedDictionaryId.flatMapLatest { id ->
+            if (id == null) flowOf(emptyList()) else dictionaryRepository.words(id)
+        }
+
+    val detailUiState: StateFlow<DictionaryDetailUiState?> =
+        combine(
+            selectedDictionary,
+            selectedDictionaryWords,
+            selectedWordId,
+            wordSearchQuery,
+        ) { dictionary, words, wordId, query ->
+            dictionary?.let { DictionaryDetailUiState(it, words, wordId, query) }
+        }.stateIn(scope, SharingStarted.Eagerly, null)
+
+    /** Тап на картку словника (05) — заміняє список деталями на тому ж екрані. */
+    fun openDictionary(dictionaryId: Long) {
+        selectedDictionaryId.value = dictionaryId
+        selectedWordId.value = null
+        wordSearchQuery.value = ""
+    }
+
+    /** Кнопка "назад" у панелі деталей — повертає список. */
+    fun closeDictionary() {
+        selectedDictionaryId.value = null
+        selectedWordId.value = null
+        wordSearchQuery.value = ""
+    }
+
+    /** Тап на рядок слова — виділяє його для кнопок "редагувати"/"видалити" зверху; повторний тап знімає виділення. */
+    fun selectWord(wordId: Long) {
+        selectedWordId.value = if (selectedWordId.value == wordId) null else wordId
+    }
+
+    /** Поле пошуку (A05) — фільтрує `filteredWords` за укр. словом, з'являється лише коли слів > 20. */
+    fun setWordSearchQuery(query: String) {
+        wordSearchQuery.value = query
+    }
+
+    /** Перейменування словника (R49) — діалог з полем, кнопка "Ок". Порожню назву ігнорує. */
+    fun renameDictionary(name: String) {
+        val trimmed = name.trim()
+        if (trimmed.isEmpty()) return
+        val id = selectedDictionaryId.value ?: return
+        scope.launch { dictionaryRepository.rename(id, trimmed) }
+    }
+
+    /** Видалення словника (R49) — з підтвердженням у UI; тут одразу закриваємо деталі й повертаємось до списку. */
+    fun deleteDictionary() {
+        val id = selectedDictionaryId.value ?: return
+        scope.launch { dictionaryRepository.deleteDictionary(id) }
+        closeDictionary()
+    }
+
+    /** Ок у діалозі редагування виділеного слова (R49/R50) — зберігає всі поля разом. */
+    fun updateWord(word: WordEntry) {
+        scope.launch { dictionaryRepository.updateWord(word) }
+    }
+
+    /** Видалення виділеного слова (R49) — без підтвердження, легко повернути повторним вводом. */
+    fun deleteWord(wordId: Long) {
+        scope.launch { dictionaryRepository.deleteWord(wordId) }
+        if (selectedWordId.value == wordId) selectedWordId.value = null
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)

@@ -36,6 +36,25 @@
         <item quantity="other">%d Wörter</item>
     </plurals>
 
+    <string name="dictionary_detail_back_content_description">Zurück zu den Wörterbüchern</string>
+    <string name="dictionary_detail_rename_content_description">Wörterbuch umbenennen</string>
+    <string name="dictionary_detail_delete_dictionary_content_description">Wörterbuch löschen</string>
+    <string name="dictionary_detail_edit_word_content_description">Ausgewähltes Wort bearbeiten</string>
+    <string name="dictionary_detail_delete_word_content_description">Ausgewähltes Wort löschen</string>
+    <string name="dictionary_detail_search_label">Suche nach ukrainischem Wort</string>
+    <string name="dictionary_detail_empty_message">Nichts gefunden</string>
+
+    <string name="dictionary_detail_rename_dialog_title">Wörterbuch umbenennen</string>
+    <string name="dictionary_detail_delete_dialog_title">Wörterbuch löschen?</string>
+    <string name="dictionary_detail_delete_dialog_message">„%1$s“ und alle seine Wörter werden endgültig gelöscht.</string>
+    <string name="dictionary_detail_edit_word_dialog_title">Wort bearbeiten</string>
+    <string name="dictionary_detail_field_ukrainian">Ukrainisches Wort</string>
+    <string name="dictionary_detail_field_translation1">Übersetzung 1</string>
+    <string name="dictionary_detail_field_translation2">Übersetzung 2 (optional)</string>
+    <string name="dictionary_detail_field_example">Beispielsatz</string>
+    <string name="dictionary_detail_confirm">OK</string>
+    <string name="dictionary_detail_cancel">Abbrechen</string>
+
     <string name="settings_title">Einstellungen</string>
     <string name="settings_back_content_description">Zurück</string>
     <string name="settings_open_content_description">Einstellungen öffnen</string>

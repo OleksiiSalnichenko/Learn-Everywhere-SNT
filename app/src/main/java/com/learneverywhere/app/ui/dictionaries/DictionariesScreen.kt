@@ -1,6 +1,8 @@
 package com.learneverywhere.app.ui.dictionaries
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,9 +17,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -27,6 +31,7 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -40,15 +45,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.learneverywhere.app.LearnEverywhereApplication
 import com.learneverywhere.app.R
 import com.learneverywhere.app.data.model.DictionaryLanguage
+import com.learneverywhere.app.data.model.WordEntry
 
 /**
  * Екран "Словники" (тікет 05): вкладки-прапорці, хедер з дефолтним
@@ -74,15 +83,34 @@ fun DictionariesScreen(modifier: Modifier = Modifier) {
 
     val selectedLanguage by viewModel.selectedLanguage.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
+    val detailUiState by viewModel.detailUiState.collectAsState()
 
-    DictionariesContent(
-        modifier = modifier,
-        selectedLanguage = selectedLanguage,
-        uiState = uiState,
-        onTabSelected = viewModel::selectTab,
-        onSetDefault = viewModel::setDefault,
-        onCreateDictionary = viewModel::createDictionary,
-    )
+    // Тап на картку словника заміняє список його вмістом на тому ж екрані
+    // (історія 38/R47) — окремого Compose-маршруту немає навмисно, це один екран.
+    val detail = detailUiState
+    if (detail != null) {
+        DictionaryDetailContent(
+            modifier = modifier,
+            state = detail,
+            onBack = viewModel::closeDictionary,
+            onRename = viewModel::renameDictionary,
+            onDeleteDictionary = viewModel::deleteDictionary,
+            onSelectWord = viewModel::selectWord,
+            onUpdateWord = viewModel::updateWord,
+            onDeleteWord = viewModel::deleteWord,
+            onSearchQueryChange = viewModel::setWordSearchQuery,
+        )
+    } else {
+        DictionariesContent(
+            modifier = modifier,
+            selectedLanguage = selectedLanguage,
+            uiState = uiState,
+            onTabSelected = viewModel::selectTab,
+            onSetDefault = viewModel::setDefault,
+            onCreateDictionary = viewModel::createDictionary,
+            onOpenDictionary = viewModel::openDictionary,
+        )
+    }
 }
 
 @Composable
@@ -93,6 +121,7 @@ private fun DictionariesContent(
     onTabSelected: (DictionaryLanguage) -> Unit,
     onSetDefault: (Long) -> Unit,
     onCreateDictionary: (String) -> Unit,
+    onOpenDictionary: (Long) -> Unit,
 ) {
     var showAddDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -125,7 +154,11 @@ private fun DictionariesContent(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     items(uiState.items, key = { it.dictionary.id }) { item ->
-                        DictionaryCard(item = item, onSetDefault = { onSetDefault(item.dictionary.id) })
+                        DictionaryCard(
+                            item = item,
+                            onSetDefault = { onSetDefault(item.dictionary.id) },
+                            onOpen = { onOpenDictionary(item.dictionary.id) },
+                        )
                     }
                 }
             }
@@ -212,12 +245,14 @@ private fun DefaultDictionaryHeader(item: DictionaryListItem?, modifier: Modifie
 private fun DictionaryCard(
     item: DictionaryListItem,
     onSetDefault: () -> Unit,
+    onOpen: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Card(modifier = modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .clickable(onClick = onOpen)
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -334,4 +369,289 @@ private fun EmptyDictionariesInvite(modifier: Modifier = Modifier) {
             )
         }
     }
+}
+
+/**
+ * Деталі словника (тікет 07, історія 38-41/R47-R50): заміняє список на тому ж
+ * екрані. Панель зверху — назад, перейменувати, видалити словник, редагувати/
+ * видалити виділене слово. Поле пошуку — лише коли `state.isSearchVisible`
+ * (A05, R48.1). `LazyColumn` тримає прокрутку плавною і при 50+ записах,
+ * бо рендерить тільки видимі рядки.
+ */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+private fun DictionaryDetailContent(
+    modifier: Modifier,
+    state: DictionaryDetailUiState,
+    onBack: () -> Unit,
+    onRename: (String) -> Unit,
+    onDeleteDictionary: () -> Unit,
+    onSelectWord: (Long) -> Unit,
+    onUpdateWord: (WordEntry) -> Unit,
+    onDeleteWord: (Long) -> Unit,
+    onSearchQueryChange: (String) -> Unit,
+) {
+    var showRenameDialog by rememberSaveable(state.dictionary.id) { mutableStateOf(false) }
+    var showDeleteDictionaryConfirm by rememberSaveable(state.dictionary.id) { mutableStateOf(false) }
+    var showEditWordDialog by rememberSaveable(state.selectedWordId) { mutableStateOf(false) }
+
+    Scaffold(
+        modifier = modifier,
+        topBar = {
+            TopAppBar(
+                title = { Text(text = state.dictionary.name) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_back),
+                            contentDescription = stringResource(R.string.dictionary_detail_back_content_description),
+                        )
+                    }
+                },
+                actions = {
+                    val renameDescription = stringResource(R.string.dictionary_detail_rename_content_description)
+                    IconButton(
+                        onClick = { showRenameDialog = true },
+                        modifier = Modifier.semantics { contentDescription = renameDescription },
+                    ) {
+                        Text(text = "✎")
+                    }
+                    val deleteDictionaryDescription = stringResource(R.string.dictionary_detail_delete_dictionary_content_description)
+                    IconButton(
+                        onClick = { showDeleteDictionaryConfirm = true },
+                        modifier = Modifier.semantics { contentDescription = deleteDictionaryDescription },
+                    ) {
+                        Text(text = "🗑")
+                    }
+                    val editWordDescription = stringResource(R.string.dictionary_detail_edit_word_content_description)
+                    IconButton(
+                        onClick = { showEditWordDialog = true },
+                        enabled = state.selectedWord != null,
+                        modifier = Modifier.semantics { contentDescription = editWordDescription },
+                    ) {
+                        Text(text = "🖊")
+                    }
+                    val deleteWordDescription = stringResource(R.string.dictionary_detail_delete_word_content_description)
+                    IconButton(
+                        onClick = { state.selectedWord?.let { onDeleteWord(it.id) } },
+                        enabled = state.selectedWord != null,
+                        modifier = Modifier.semantics { contentDescription = deleteWordDescription },
+                    ) {
+                        Text(text = "✕")
+                    }
+                },
+            )
+        },
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize(),
+        ) {
+            if (state.isSearchVisible) {
+                OutlinedTextField(
+                    value = state.searchQuery,
+                    onValueChange = onSearchQueryChange,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp, 8.dp),
+                    label = { Text(text = stringResource(R.string.dictionary_detail_search_label)) },
+                    singleLine = true,
+                )
+            }
+
+            if (state.filteredWords.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = stringResource(R.string.dictionary_detail_empty_message),
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(16.dp, 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    items(state.filteredWords, key = { it.id }) { word ->
+                        WordRow(
+                            word = word,
+                            selected = word.id == state.selectedWordId,
+                            onClick = { onSelectWord(word.id) },
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    if (showRenameDialog) {
+        RenameDictionaryDialog(
+            initialName = state.dictionary.name,
+            onConfirm = { name ->
+                onRename(name)
+                showRenameDialog = false
+            },
+            onDismiss = { showRenameDialog = false },
+        )
+    }
+
+    if (showDeleteDictionaryConfirm) {
+        DeleteDictionaryConfirmDialog(
+            dictionaryName = state.dictionary.name,
+            onConfirm = {
+                showDeleteDictionaryConfirm = false
+                onDeleteDictionary()
+            },
+            onDismiss = { showDeleteDictionaryConfirm = false },
+        )
+    }
+
+    val selectedWord = state.selectedWord
+    if (showEditWordDialog && selectedWord != null) {
+        EditWordDialog(
+            word = selectedWord,
+            onConfirm = { edited ->
+                onUpdateWord(edited)
+                showEditWordDialog = false
+            },
+            onDismiss = { showEditWordDialog = false },
+        )
+    }
+}
+
+/** Один компактний рядок слова: укр. жирним, переклади через кому, приклад курсивом (історія 39/R48). */
+@Composable
+private fun WordRow(word: WordEntry, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val background = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
+    val translations = listOfNotNull(word.translation1, word.translation2).joinToString(", ")
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(background, RoundedCornerShape(8.dp))
+            .clickable(onClick = onClick)
+            .padding(12.dp, 8.dp),
+    ) {
+        Row {
+            Text(text = word.ukrainian, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+            Text(text = " — $translations", style = MaterialTheme.typography.bodyLarge)
+        }
+        Text(
+            text = word.example,
+            style = MaterialTheme.typography.bodySmall,
+            fontStyle = FontStyle.Italic,
+        )
+    }
+}
+
+/** Перейменування словника (R49) — поле, передзаповнене поточною назвою. */
+@Composable
+private fun RenameDictionaryDialog(initialName: String, onConfirm: (String) -> Unit, onDismiss: () -> Unit) {
+    var name by rememberSaveable { mutableStateOf(initialName) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = stringResource(R.string.dictionary_detail_rename_dialog_title)) },
+        text = {
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text(text = stringResource(R.string.dictionaries_add_dialog_label)) },
+                singleLine = true,
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(name) }, enabled = name.isNotBlank()) {
+                Text(text = stringResource(R.string.dictionary_detail_confirm))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(text = stringResource(R.string.dictionary_detail_cancel))
+            }
+        },
+    )
+}
+
+/** Видалення словника — з підтвердженням (критерій приймання тікета 07). */
+@Composable
+private fun DeleteDictionaryConfirmDialog(dictionaryName: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = stringResource(R.string.dictionary_detail_delete_dialog_title)) },
+        text = { Text(text = stringResource(R.string.dictionary_detail_delete_dialog_message, dictionaryName)) },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(text = stringResource(R.string.dictionary_detail_confirm))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(text = stringResource(R.string.dictionary_detail_cancel))
+            }
+        },
+    )
+}
+
+/** Редагування виділеного слова — усі поля разом, Ок/Cancel (брифінг, R49/R50). */
+@Composable
+private fun EditWordDialog(word: WordEntry, onConfirm: (WordEntry) -> Unit, onDismiss: () -> Unit) {
+    var ukrainian by rememberSaveable { mutableStateOf(word.ukrainian) }
+    var translation1 by rememberSaveable { mutableStateOf(word.translation1) }
+    var translation2 by rememberSaveable { mutableStateOf(word.translation2.orEmpty()) }
+    var example by rememberSaveable { mutableStateOf(word.example) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = stringResource(R.string.dictionary_detail_edit_word_dialog_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = ukrainian,
+                    onValueChange = { ukrainian = it },
+                    label = { Text(text = stringResource(R.string.dictionary_detail_field_ukrainian)) },
+                    singleLine = true,
+                )
+                OutlinedTextField(
+                    value = translation1,
+                    onValueChange = { translation1 = it },
+                    label = { Text(text = stringResource(R.string.dictionary_detail_field_translation1)) },
+                    singleLine = true,
+                )
+                OutlinedTextField(
+                    value = translation2,
+                    onValueChange = { translation2 = it },
+                    label = { Text(text = stringResource(R.string.dictionary_detail_field_translation2)) },
+                    singleLine = true,
+                )
+                OutlinedTextField(
+                    value = example,
+                    onValueChange = { example = it },
+                    label = { Text(text = stringResource(R.string.dictionary_detail_field_example)) },
+                    singleLine = true,
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                onConfirm(
+                    word.copy(
+                        ukrainian = ukrainian.trim(),
+                        translation1 = translation1.trim(),
+                        translation2 = translation2.trim().ifBlank { null },
+                        example = example.trim(),
+                    ),
+                )
+            }, enabled = ukrainian.isNotBlank() && translation1.isNotBlank()) {
+                Text(text = stringResource(R.string.dictionary_detail_confirm))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(text = stringResource(R.string.dictionary_detail_cancel))
+            }
+        },
+    )
 }

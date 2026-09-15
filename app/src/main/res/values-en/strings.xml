@@ -36,6 +36,25 @@
         <item quantity="other">%d words</item>
     </plurals>
 
+    <string name="dictionary_detail_back_content_description">Back to dictionaries</string>
+    <string name="dictionary_detail_rename_content_description">Rename dictionary</string>
+    <string name="dictionary_detail_delete_dictionary_content_description">Delete dictionary</string>
+    <string name="dictionary_detail_edit_word_content_description">Edit selected word</string>
+    <string name="dictionary_detail_delete_word_content_description">Delete selected word</string>
+    <string name="dictionary_detail_search_label">Search by Ukrainian word</string>
+    <string name="dictionary_detail_empty_message">Nothing found</string>
+
+    <string name="dictionary_detail_rename_dialog_title">Rename dictionary</string>
+    <string name="dictionary_detail_delete_dialog_title">Delete dictionary?</string>
+    <string name="dictionary_detail_delete_dialog_message">"%1$s" and all its words will be deleted permanently.</string>
+    <string name="dictionary_detail_edit_word_dialog_title">Edit word</string>
+    <string name="dictionary_detail_field_ukrainian">Ukrainian word</string>
+    <string name="dictionary_detail_field_translation1">Translation 1</string>
+    <string name="dictionary_detail_field_translation2">Translation 2 (optional)</string>
+    <string name="dictionary_detail_field_example">Example sentence</string>
+    <string name="dictionary_detail_confirm">OK</string>
+    <string name="dictionary_detail_cancel">Cancel</string>
+
     <string name="settings_title">Settings</string>
     <string name="settings_back_content_description">Back</string>
     <string name="settings_open_content_description">Open settings</string>

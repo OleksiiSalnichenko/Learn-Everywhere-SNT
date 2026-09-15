@@ -135,4 +135,106 @@ class DictionariesViewModelTest {
             assertTrue(viewModel.uiState.value.items.isEmpty())
             assertNull(viewModel.uiState.value.defaultItem)
         }
+
+    @Test
+    fun `tapping a dictionary opens detail state, back closes it (R47)`() = runTest(UnconfinedTestDispatcher()) {
+        val repository = FakeDictionaryRepository()
+        val dictionary = repository.createDictionary(DictionaryLanguage.GERMAN, "Deutsch")
+        val viewModel = DictionariesViewModel(
+            repository,
+            FakeSettingsRepository(AppSettings(mainLanguage = MainLanguage.GERMAN)),
+            backgroundScope,
+        )
+        assertNull(viewModel.detailUiState.value)
+
+        viewModel.openDictionary(dictionary.id)
+
+        assertEquals(dictionary.id, viewModel.detailUiState.value?.dictionary?.id)
+
+        viewModel.closeDictionary()
+
+        assertNull(viewModel.detailUiState.value)
+    }
+
+    @Test
+    fun `renaming the open dictionary updates both the detail header and the list (R49)`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repository = FakeDictionaryRepository()
+            val dictionary = repository.createDictionary(DictionaryLanguage.GERMAN, "Стара назва")
+            val viewModel = DictionariesViewModel(
+                repository,
+                FakeSettingsRepository(AppSettings(mainLanguage = MainLanguage.GERMAN)),
+                backgroundScope,
+            )
+            viewModel.openDictionary(dictionary.id)
+
+            viewModel.renameDictionary("Нова назва")
+
+            assertEquals("Нова назва", viewModel.detailUiState.value?.dictionary?.name)
+            assertEquals("Нова назва", viewModel.uiState.value.items.single().dictionary.name)
+        }
+
+    @Test
+    fun `deleting the open dictionary removes it from the list and closes the detail view (R49)`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repository = FakeDictionaryRepository()
+            val dictionary = repository.createDictionary(DictionaryLanguage.GERMAN, "Deutsch")
+            val viewModel = DictionariesViewModel(
+                repository,
+                FakeSettingsRepository(AppSettings(mainLanguage = MainLanguage.GERMAN)),
+                backgroundScope,
+            )
+            viewModel.openDictionary(dictionary.id)
+
+            viewModel.deleteDictionary()
+
+            assertNull(viewModel.detailUiState.value)
+            assertTrue(viewModel.uiState.value.items.isEmpty())
+        }
+
+    @Test
+    fun `selecting a word, editing it and deleting it act on that exact word (R49, R50)`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repository = FakeDictionaryRepository()
+            val dictionary = repository.createDictionary(DictionaryLanguage.GERMAN, "Deutsch")
+            val stil = repository.addWord(dictionary.id, "стіл", "der Tisch", null, "Das ist der Tisch.", false)
+            val stilec = repository.addWord(dictionary.id, "стілець", "der Stuhl", null, "Das ist der Stuhl.", false)
+            val viewModel = DictionariesViewModel(
+                repository,
+                FakeSettingsRepository(AppSettings(mainLanguage = MainLanguage.GERMAN)),
+                backgroundScope,
+            )
+            viewModel.openDictionary(dictionary.id)
+
+            viewModel.selectWord(stil.id)
+            assertEquals(stil.id, viewModel.detailUiState.value?.selectedWordId)
+
+            val edited = stil.copy(translation1 = "der Esstisch")
+            viewModel.updateWord(edited)
+            assertEquals("der Esstisch", viewModel.detailUiState.value?.words?.first { it.id == stil.id }?.translation1)
+
+            viewModel.deleteWord(stilec.id)
+            assertEquals(listOf(stil.id), viewModel.detailUiState.value?.words?.map { it.id })
+        }
+
+    @Test
+    fun `word search field appears only above 20 words and filters by ukrainian word (A05, R48-1)`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repository = FakeDictionaryRepository()
+            val dictionary = repository.createDictionary(DictionaryLanguage.GERMAN, "Deutsch")
+            repeat(20) { i -> repository.addWord(dictionary.id, "слово$i", "das Wort$i", null, "Beispiel $i.", false) }
+            val viewModel = DictionariesViewModel(
+                repository,
+                FakeSettingsRepository(AppSettings(mainLanguage = MainLanguage.GERMAN)),
+                backgroundScope,
+            )
+            viewModel.openDictionary(dictionary.id)
+            assertEquals(false, viewModel.detailUiState.value?.isSearchVisible)
+
+            repository.addWord(dictionary.id, "стілець", "der Stuhl", null, "Das ist der Stuhl.", false)
+            assertEquals(true, viewModel.detailUiState.value?.isSearchVisible)
+
+            viewModel.setWordSearchQuery("стіл")
+            assertEquals(listOf("стілець"), viewModel.detailUiState.value?.filteredWords?.map { it.ukrainian })
+        }
 }

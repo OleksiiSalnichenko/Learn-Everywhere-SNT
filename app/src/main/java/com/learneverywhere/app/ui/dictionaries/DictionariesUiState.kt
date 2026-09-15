@@ -2,6 +2,7 @@ package com.learneverywhere.app.ui.dictionaries
 
 import com.learneverywhere.app.data.model.Dictionary
 import com.learneverywhere.app.data.model.DictionaryLanguage
+import com.learneverywhere.app.data.model.WordEntry
 
 /**
  * Один словник у списку разом з кількістю слів. Лічильник — деталь цього
@@ -24,4 +25,35 @@ data class DictionariesUiState(
     /** Дефолтний словник активної вкладки — хедер і кнопка плей показують саме його (історія 25/R42). */
     val defaultItem: DictionaryListItem?
         get() = items.firstOrNull { it.dictionary.isDefault }
+}
+
+/**
+ * Стан екрана "деталі словника" (тікет 07, історія 38/R47) — заміняє
+ * список на місці того самого екрана, коли користувач тапає на картку.
+ * `null` в `DictionariesViewModel.detailUiState` означає "список", не "деталі".
+ */
+data class DictionaryDetailUiState(
+    val dictionary: Dictionary,
+    val words: List<WordEntry>,
+    val selectedWordId: Long? = null,
+    val searchQuery: String = "",
+) {
+    /** Поле пошуку з'являється лише коли слів багато (історія 40/A05, R48.1). */
+    val isSearchVisible: Boolean
+        get() = words.size > SEARCH_VISIBLE_THRESHOLD
+
+    /** Відфільтровані за укр. словом записи — те, що реально показує `LazyColumn`. */
+    val filteredWords: List<WordEntry>
+        get() = if (searchQuery.isBlank()) {
+            words
+        } else {
+            words.filter { it.ukrainian.contains(searchQuery, ignoreCase = true) }
+        }
+
+    val selectedWord: WordEntry?
+        get() = words.firstOrNull { it.id == selectedWordId }
+
+    private companion object {
+        const val SEARCH_VISIBLE_THRESHOLD = 20
+    }
 }
