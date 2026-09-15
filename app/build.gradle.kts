@@ -1,20 +1,22 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
 }
 
 android {
     namespace = "com.learneverywhere.app"
-    compileSdk = 36
+    // compileSdk 37 — вимога androidx-бібліотек у поточних версіях (core-ktx 1.19,
+    // compose-bom 2026.08.00 та ін. компільовані проти API 37); android-37 доступний
+    // локально в SDK.
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.learneverywhere.app"
         // API 26 — мінімум для стабільної роботи MediaSessionService і сучасного
         // SpeechRecognizer (рішення зафіксоване в spec.md §«Рішення щодо реалізації»).
         minSdk = 26
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 1
         versionName = "0.1.0"
     }
@@ -30,9 +32,9 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
+    // AGP 9.0+ built-in Kotlin support бере jvmTarget з compileOptions вище —
+    // окремий android.kotlinOptions { } більше не існує (це був DSL плагіна
+    // org.jetbrains.kotlin.android, який ми прибрали).
 
     buildFeatures {
         compose = true
@@ -72,4 +74,20 @@ dependencies {
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.core)
     testImplementation(platform(libs.androidx.compose.bom))
+}
+
+// Robolectric 4.17 читає внутрішні поля FileDescriptor через рефлексію
+// (ApplicationSharedMemory) — на JDK 17+ з модульною системою це вимагає
+// явного --add-opens, інакше IllegalAccessException до jdk.internal.access.
+// Локальне середовище виконує тести на JBR 25, де обмеження ще суворіші.
+tasks.withType<Test>().configureEach {
+    jvmArgs(
+        "--add-opens=java.base/java.lang=ALL-UNNAMED",
+        "--add-opens=java.base/java.util=ALL-UNNAMED",
+        "--add-opens=java.base/java.io=ALL-UNNAMED",
+        "--add-opens=java.base/java.text=ALL-UNNAMED",
+        "--add-opens=java.base/jdk.internal.access=ALL-UNNAMED",
+        "--add-opens=java.base/jdk.internal.misc=ALL-UNNAMED",
+        "--add-opens=java.desktop/java.awt.font=ALL-UNNAMED",
+    )
 }
