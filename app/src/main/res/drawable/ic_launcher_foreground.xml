@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Передній план adaptive-іконки: коралова кнопка мікрофона (#FF6A45) —
+     функціональний символ застосунку (голосовий ввід + озвучення слів).
+     Весь малюнок лежить у безпечній зоні 66dp навколо центру (54,54), щоб не
+     обрізатися колом/сквіркл-маскою на різних лаунчерах. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- коралове коло-підкладка під мікрофоном -->
+    <path
+        android:pathData="M54,54m-24,0a24,24 0,1 1,48 0a24,24 0,1 1,-48 0"
+        android:fillColor="#FF6A45" />
+
+    <!-- капсула мікрофона -->
+    <path
+        android:pathData="M44,34 A10,10 0 0 1 54,24 A10,10 0 0 1 64,34 L64,48 A10,10 0 0 1 54,58 A10,10 0 0 1 44,48 Z"
+        android:fillColor="#FFFFFF" />
+
+    <!-- дужка-підставка мікрофона -->
+    <path
+        android:pathData="M40,52 C40,63 46,71 54,71 C62,71 68,63 68,52"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000" />
+
+    <!-- ніжка і основа -->
+    <path
+        android:pathData="M54,71 L54,80 M45,80 L63,80"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000" />
+</vector>

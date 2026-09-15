@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Базова system-тема Activity. Реальна тема (кольори, форми, типографіка)
+         керується Compose-ом у ui/theme/Theme.kt — ця XML-тема лише прибирає
+         системний action bar і задає колір фону вікна до першого Compose-кадру,
+         щоб не було білого «блимання» при старті. -->
+    <style name="Theme.LearnEverywhere" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/window_background</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+</resources>

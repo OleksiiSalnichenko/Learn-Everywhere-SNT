@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Learn Everywhere</string>
+    <string name="splash_tagline">Listen. Say it. Remember.</string>
+
+    <string name="nav_home_content_description">Home</string>
+    <string name="nav_dictionaries_content_description">Dictionaries</string>
+
+    <string name="home_screen_placeholder">Home screen</string>
+    <string name="dictionaries_screen_placeholder">Dictionaries</string>
+</resources>

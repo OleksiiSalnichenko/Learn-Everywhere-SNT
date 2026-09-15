@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Колір фону вікна до першого Compose-кадру. День/ніч тут не розрізняємо
+         навмисно (values-night/colors.xml нижче) — щоб уникнути "блимання" не тим
+         кольором під час холодного старту. -->
+    <color name="window_background">#FDF6F3</color>
+</resources>

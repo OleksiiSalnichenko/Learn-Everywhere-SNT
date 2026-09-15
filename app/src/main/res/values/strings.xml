@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Learn Everywhere</string>
+    <string name="splash_tagline">Слухай. Кажи. Запам\'ятовуй.</string>
+
+    <string name="nav_home_content_description">Головний екран</string>
+    <string name="nav_dictionaries_content_description">Словники</string>
+
+    <string name="home_screen_placeholder">Головний екран</string>
+    <string name="dictionaries_screen_placeholder">Словники</string>
+</resources>

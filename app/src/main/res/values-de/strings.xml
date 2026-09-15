@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Learn Everywhere</string>
+    <string name="splash_tagline">Hören. Sprechen. Merken.</string>
+
+    <string name="nav_home_content_description">Startbildschirm</string>
+    <string name="nav_dictionaries_content_description">Wörterbücher</string>
+
+    <string name="home_screen_placeholder">Startbildschirm</string>
+    <string name="dictionaries_screen_placeholder">Wörterbücher</string>
+</resources>
