@@ -1,0 +1,68 @@
+window.STATE =
+{
+  "slug": "learn-everywhere",
+  "dir": "2026-09-14-learn-everywhere--wip",
+  "title": "Learn Everywhere — аудіословник (Android)",
+  "mode": "semi",
+  "depth": "normal",
+  "polish": null,
+  "briefFile": "2026-09-14-brief.md",
+  "memoryFile": "CLAUDE.md",
+  "skillDir": "/c/Users/asaln/.claude/skills/autopilot",
+  "startedAt": "2026-09-14T22:42:44+02:00",
+  "updatedAt": "2026-09-18T00:00:00+02:00",
+  "finishedAt": null,
+  "tier": "T3",
+  "stages": [
+    { "id": "preflight", "status": "done", "startedAt": "2026-09-14T22:42:44+02:00", "finishedAt": "2026-09-14T22:52:00+02:00" },
+    { "id": "manifest",  "status": "done", "startedAt": "2026-09-14T22:52:00+02:00", "finishedAt": "2026-09-14T22:55:00+02:00" },
+    { "id": "briefing",  "status": "done", "startedAt": "2026-09-14T22:55:00+02:00", "finishedAt": "2026-09-14T23:09:21+02:00" },
+    { "id": "spec",      "status": "done", "startedAt": "2026-09-14T23:09:21+02:00", "finishedAt": "2026-09-14T23:52:48+02:00", "note": "апрув Software Design + Stitch: ок" },
+    { "id": "plan",      "status": "done", "startedAt": "2026-09-14T23:52:48+02:00", "finishedAt": "2026-09-14T23:52:48+02:00", "note": "10 тасків, ярус T3, 5 хвиль" },
+    { "id": "build",     "status": "active", "startedAt": "2026-09-14T23:52:48+02:00", "note": "9 з 10 тасків готово — хвиля 5: таск 10 наступний" },
+    { "id": "review",    "status": "pending" },
+    { "id": "final",     "status": "pending" }
+  ],
+  "requirements": {
+    "total": 73, "done": 67, "inTicket": 6, "inSpec": 0,
+    "placeholder": 0, "deferred": 0, "dropped": 0
+  },
+  "tickets": [
+    { "id": "01", "title": "Фундамент: проєкт, база даних, навігація, іконка", "requirements": ["R05","R09","R12","R13","R23","R34","R35","R54","R55","R58","R60","A01"], "blockedBy": [], "wave": 1, "zone": ["app/"], "status": "done", "startedAt": "2026-09-14T23:53:52+02:00", "finishedAt": "2026-09-15T07:55:18+02:00", "retries": 1, "repairs": 2, "handoffs": 0, "files": ["app/src/main/java/com/learneverywhere/app/**", "app/src/test/java/com/learneverywhere/app/**", "build.gradle.kts", "app/build.gradle.kts", "gradle/**", "gradlew", "gradlew.bat"], "tests": { "passed": 3, "failed": 0 }, "commit": "55427a2", "concerns": ["interfaces.md — рядок про кількість тестів вже актуалізовано вручну (3/3)", "тест setDefault перевіряє інваріант «один дефолт», не саму транзакційність/відкат при збої — докстрінг тесту трохи перебільшує (craft, не блокуюче)"] },
+    { "id": "02", "title": "Сервіс перекладу (MyMemory)", "requirements": ["R06","R07","R08","R08.1","R14.2","R67i","R71i"], "blockedBy": ["01"], "wave": 2, "zone": ["translation/"], "status": "done", "startedAt": "2026-09-15T07:15:52+00:00", "finishedAt": "2026-09-15T08:05:00+00:00", "retries": 0, "repairs": 0, "handoffs": 0, "files": ["app/src/main/java/com/learneverywhere/app/translation/**", "app/src/test/java/com/learneverywhere/app/translation/**", "app/build.gradle.kts", "gradle/libs.versions.toml"], "tests": { "passed": 8, "failed": 0 }, "commit": "3a8d04c" },
+    { "id": "03", "title": "Голос: розпізнавання, озвучення, визначення мови", "requirements": ["R01","R01.1","R14.1","R66i","R68i","R70i"], "blockedBy": ["01"], "wave": 2, "zone": ["voice/"], "status": "done", "startedAt": "2026-09-15T07:15:52+00:00", "finishedAt": "2026-09-15T08:35:00+00:00", "retries": 0, "repairs": 0, "handoffs": 0, "files": ["app/src/main/java/com/learneverywhere/app/voice/**", "app/src/test/java/com/learneverywhere/app/voice/**", "app/src/main/AndroidManifest.xml"], "tests": { "passed": 18, "failed": 0 }, "commit": "efc68ad" },
+    { "id": "04", "title": "Екран налаштувань", "requirements": ["R22","R23","R24","R25","R26","R27","R28","R29","R30","R31","R32","R33","R34","R35","R36i","R37","R73i","A01","A06"], "blockedBy": ["01"], "wave": 2, "zone": ["ui/settings/"], "status": "done", "startedAt": "2026-09-15T07:15:52+00:00", "finishedAt": "2026-09-15T09:15:00+00:00", "retries": 0, "repairs": 2, "handoffs": 0, "files": ["app/src/main/java/com/learneverywhere/app/ui/settings/**", "app/src/test/java/com/learneverywhere/app/settings/**", "app/src/test/java/com/learneverywhere/app/ui/settings/**", "app/src/main/java/com/learneverywhere/app/ui/main/MainScreen.kt", "app/src/main/java/com/learneverywhere/app/ui/navigation/LearnEverywhereNavHost.kt", "app/src/main/res/values*/strings.xml", "app/src/main/res/drawable/ic_back.xml", "app/src/main/res/drawable/ic_settings.xml"], "tests": { "passed": 8, "failed": 0 }, "commit": "73be3ac (+ merge 6b3d03b)" },
+    { "id": "05", "title": "Екран словників: вкладки і список", "requirements": ["R02","R38","R39","R40","R41","R42","R46","R51","R52","A03"], "blockedBy": ["01"], "wave": 2, "zone": ["ui/dictionaries/"], "status": "done", "startedAt": "2026-09-15T07:40:00+00:00", "finishedAt": "2026-09-15T08:50:00+00:00", "retries": 0, "repairs": 0, "handoffs": 0, "files": ["app/src/main/java/com/learneverywhere/app/ui/dictionaries/**", "app/src/test/java/com/learneverywhere/app/ui/dictionaries/**"], "tests": { "passed": 11, "failed": 0 }, "commit": "4ba544d" },
+    { "id": "06", "title": "Головний екран: захоплення слова (голос + текст)", "requirements": ["R03","R04","R04.1","R11","R14","R15","R16","R17","R18","R19","R20","R21","A04"], "blockedBy": ["01","02","03"], "wave": 3, "zone": ["ui/home/"], "status": "done", "startedAt": "2026-09-15T09:30:00+00:00", "finishedAt": "2026-09-15T11:00:00+00:00", "retries": 0, "repairs": 1, "handoffs": 0, "files": ["app/src/main/java/com/learneverywhere/app/ui/home/**", "app/src/test/java/com/learneverywhere/app/ui/home/**", "app/src/main/java/com/learneverywhere/app/di/AppContainer.kt", "app/src/main/res/drawable/ic_mic.xml"], "tests": { "passed": 12, "failed": 0 }, "commit": "773fe7e" },
+    { "id": "07", "title": "Деталі словника: перегляд і редагування", "requirements": ["R47","R48","R48.1","R49","R50","A05"], "blockedBy": ["05"], "wave": 3, "zone": ["ui/dictionaries/"], "status": "done", "startedAt": "2026-09-15T09:30:00+00:00", "finishedAt": "2026-09-15T09:55:00+00:00", "retries": 0, "repairs": 0, "handoffs": 0, "files": ["app/src/main/java/com/learneverywhere/app/ui/dictionaries/**", "app/src/test/java/com/learneverywhere/app/ui/dictionaries/**"], "tests": { "passed": 13, "failed": 0 }, "commit": "8b0f2f4" },
+    { "id": "08", "title": "Рушій програвання (фоновий сервіс)", "requirements": ["R43","R43.1","R44","R45","R45.1","R69i","A02"], "blockedBy": ["01","03"], "wave": 3, "zone": ["playback/"], "status": "done", "startedAt": "2026-09-15T09:30:00+00:00", "finishedAt": "2026-09-15T10:30:00+00:00", "retries": 0, "repairs": 0, "handoffs": 0, "files": ["app/src/main/java/com/learneverywhere/app/playback/**", "app/src/test/java/com/learneverywhere/app/playback/**", "app/build.gradle.kts", "gradle/libs.versions.toml", "app/src/main/AndroidManifest.xml"], "tests": { "passed": 9, "failed": 0 }, "commit": "665abef" },
+    { "id": "09", "title": "Імпорт/експорт словників (JSON)", "requirements": ["R10","R10.1","R10.2","R72i"], "blockedBy": ["07"], "wave": 4, "zone": ["data/","ui/dictionaries/"], "status": "done", "startedAt": "2026-09-18T00:00:00+02:00", "finishedAt": "2026-09-18T00:00:00+02:00", "retries": 0, "repairs": 2, "handoffs": 0, "files": ["app/src/main/java/com/learneverywhere/app/data/repository/**", "app/src/test/java/com/learneverywhere/app/data/repository/**", "app/src/main/java/com/learneverywhere/app/ui/dictionaries/**", "app/src/test/java/com/learneverywhere/app/ui/dictionaries/**", "app/src/main/res/values*/strings.xml", "app/src/main/res/xml/file_paths.xml", "app/src/main/AndroidManifest.xml"], "tests": { "passed": 66, "failed": 0 }, "commit": "65d8d18" },
+    { "id": "10", "title": "Плей і картка на екрані словників", "requirements": ["R42","R43","R44"], "blockedBy": ["07","08","09"], "wave": 5, "zone": ["ui/dictionaries/","playback/"], "status": "pending", "retries": 0, "repairs": 0, "handoffs": 0 }
+  ],
+  "singlePass": null,
+  "tests": null,
+  "debt": { "placeholders": [], "assumptions": [], "emptyEnv": [] },
+  "additions": ["A01", "A02", "A03", "A04", "A05", "A06"],
+  "coverage": { "findings": 5, "resolved": 5, "note": "G2 незалежна перевірка: 1 нема, 3 напівпокрито, доповнення поза брифом — усе виправлено у spec.md" },
+  "concerns": [
+    "таск01 craft — data-шар (DictionaryRepositoryImpl) тримає Context для одного рядка; StringProvider-абстракція була б чистішою, але прийнятний компроміс для розміру проєкту (nit, не блокуюче)",
+    "таск02 craft — TranslationServiceImplTest: 4 тести дублюють форму fixture/сервісу, вартувало б спільного хелпера (nit, не блокуюче)",
+    "таск02 craft — гілки JSONException і порожніх candidates у TranslationServiceImpl не покриті тестами (не блокуюче, але вартує тікета на доповнення тестів пізніше)",
+    "таск03 craft — happy-path SpeechInput.listen() не покритий тестом (не блокуюче)",
+    "таск04 craft — Reinvention: SettingsScreen.kt (rememberLocalizedContext, 326-339) заново реалізує InterfaceLanguage→Locale, яку interfaces.md §voice вже публікує як InterfaceLanguage.toSpokenLanguage()+SpokenLanguage.toLocale() (не блокуюче, варто перевикористати)",
+    "таск04 craft — 13 колбеків onXxxChange з ідентичною формою в SettingsScreen.kt, один onSettingsChange: (AppSettings)->Unit замінив би обидва місця (не блокуюче)",
+    "таск05 craft — DictionariesScreen.kt:76 втретє повторює каст (LocalContext.current.applicationContext as LearnEverywhereApplication).container.X (уже в SettingsScreen.kt, InterfaceLocale.kt) — проситься спільний аксесор (не блокуюче)",
+    "таск05 spec — DictionariesViewModel навмисно не androidx.lifecycle.ViewModel (як і SettingsScreen у 04) — компроміс задокументований, але якщо цей шаблон піде і в таск 08 (playback, найскладніша логіка), втрата стану при повороті вже буде відчутною — варто підняти lifecycle-viewmodel-compose раніше, ніж пізніше",
+    "таск07 craft — 4 майже ідентичні блоки IconButton+contentDescription у панелі дій DictionaryDetailContent — проситься спільний TopBarGlyphAction(glyph, description, enabled, onClick) (не блокуюче)",
+    "таск06 craft — translateFromUkrainian/translateForeignWord дублюють форму (pendingRetry/runCatching/onSuccess/onFailure) — проситься спільний хелпер runTranslation (не блокуюче)",
+    "таск06 craft — ChooseDictionaryDialog використовує dismissButton-слот AlertDialog не для «скасувати», а для другого рівноправного вибору — заплутує читача (не блокуюче)",
+    "таск08 craft — PlaybackEngineTest.kt:146-154 (skipToNextWord abandons remaining repeats) не доводить те, що обіцяє назва — skip викликається на початковій фазі, до будь-яких повторів; тест пройшов би і без логіки скасування (не блокуюче, але це слабкий тест на найважливішому шві проєкту)",
+    "таск08 craft — PlaybackController.kt executePhase: 5 однакових гілок delay(phase.seconds*1000L) — проситься маркер-інтерфейс PlaybackPhase.Timed (не блокуюче)",
+    "таск09 spec — при повністю невалідному (не JSON) файлі detectImportLanguage повертає null так само, як і для валідного файлу без мови — користувачу спершу показується діалог вибору мови, і лише після вибору з'являється помилка; очікувано одразу зрозуміла помилка без зайвого кроку (не блокуюче)",
+    "таск09 craft — DictionaryExportProvider (заміна на FileProvider у дозапиті): security-чутлива логіка (openFile/fileForUri, захист від виходу за межі теки) без прямого юніт-тесту (не блокуюче, повторно оцінити після дозапиту)",
+    "таск09 craft — authority-суфікс \".exportprovider\" захардкоджений окремо в AndroidManifest.xml і в DictionaryRepositoryImpl.kt без спільної константи (не блокуюче, актуальність залежить від результату дозапиту)",
+    "таск09 craft — detectImportLanguage і гілка «мова не визначена → діалог» (R10.1) не покриті тестом, лише importFromJson з готовою мовою (не блокуюче)"
+  ],
+  "reviewers": { "manifestSpec": "ab8422c261b581d39", "craft": "ade9367fc4dad81dd" },
+  "blind": null
+}
