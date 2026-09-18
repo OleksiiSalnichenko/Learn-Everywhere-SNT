@@ -45,20 +45,20 @@ class PlaybackController(
     private val settingsRepository: SettingsRepository,
     private val speaker: Speaker,
     private val scope: CoroutineScope,
-) {
+) : PlaybackActions {
 
     private val _currentWord = MutableStateFlow<WordEntry?>(null)
-    val currentWord: StateFlow<WordEntry?> = _currentWord.asStateFlow()
+    override val currentWord: StateFlow<WordEntry?> = _currentWord.asStateFlow()
 
     private val _isPlaying = MutableStateFlow(false)
-    val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
+    override val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
 
     private var engine: PlaybackEngine? = null
     private var translationLanguage: DictionaryLanguage = DictionaryLanguage.GERMAN
     private var driverJob: Job? = null
 
     /** Запускає програвання дефолтного/обраного словника [dictionaryId] з початку черги. */
-    fun start(dictionaryId: Long) {
+    override fun start(dictionaryId: Long) {
         driverJob?.cancel()
         driverJob = scope.launch {
             val words = dictionaryRepository.words(dictionaryId).first()
@@ -127,16 +127,16 @@ class PlaybackController(
     }
 
     /** Ставить чергу на паузу (в т.ч. викликається з [PlaybackMediaService] при втраті audio focus, R45.1). */
-    fun pause() {
+    override fun pause() {
         _isPlaying.value = false
     }
 
     /** Знімає з паузи — no-op, якщо чергу вже зупинено (нема що відновлювати). */
-    fun resume() {
+    override fun resume() {
         if (engine != null) _isPlaying.value = true
     }
 
-    fun stop() {
+    override fun stop() {
         driverJob?.cancel()
         driverJob = null
         engine = null

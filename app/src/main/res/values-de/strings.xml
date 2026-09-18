@@ -40,6 +40,7 @@
     <string name="dictionaries_header_label">Standardwörterbuch</string>
     <string name="dictionaries_header_no_words">Füge zuerst Wörter hinzu</string>
     <string name="dictionaries_play_content_description">Standardwörterbuch abspielen</string>
+    <string name="dictionaries_now_playing_label">Wird gerade abgespielt</string>
 
     <string name="dictionaries_default_badge">Standard</string>
     <string name="dictionaries_set_default_content_description">Als Standard festlegen</string>
@@ -116,4 +117,5 @@
     <string name="playback_pause_content_description">Pause</string>
     <string name="playback_resume_content_description">Abspielen</string>
     <string name="playback_skip_next_content_description">Nächstes Wort</string>
+    <string name="playback_stop_content_description">Wiedergabe stoppen</string>
 </resources>

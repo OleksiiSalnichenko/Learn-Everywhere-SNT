@@ -7,6 +7,7 @@ import com.learneverywhere.app.data.model.MainLanguage
 import com.learneverywhere.app.data.model.WordEntry
 import com.learneverywhere.app.data.repository.DictionaryRepository
 import com.learneverywhere.app.data.repository.InvalidDictionaryFileException
+import com.learneverywhere.app.playback.PlaybackActions
 import com.learneverywhere.app.settings.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -36,6 +37,11 @@ class DictionariesViewModel(
     private val dictionaryRepository: DictionaryRepository,
     settingsRepository: SettingsRepository,
     private val scope: CoroutineScope,
+    // Тікет 10 — `null` за замовчуванням: composable, що не передав контролер
+    // (напр. майбутній прев'ю), лишається робочим, просто без плею. Реальний
+    // екран (`DictionariesScreen`) завжди передає живий `PlaybackController`
+    // (08) — сам клас лишається єдиною реалізацією, інтерфейс лише для тестів.
+    private val playback: PlaybackActions? = null,
 ) {
 
     // null, поки користувач сам не перемкнув вкладку — тоді активна вкладка
@@ -76,6 +82,48 @@ class DictionariesViewModel(
         if (trimmed.isEmpty()) return
         val language = selectedLanguage.value
         scope.launch { dictionaryRepository.createDictionary(language, trimmed) }
+    }
+
+    // --- Плей у хедері (тікет 10, історії 25/28, R42/R44) ------------------------------------
+
+    /** `null`-контролер (прев'ю без Android `Context`) — стан завжди "нічого не грає". */
+    val playbackUiState: StateFlow<PlaybackUiState> = playback?.let { controller ->
+        combine(
+            controller.currentWord,
+            controller.isPlaying,
+            settingsRepository.settings,
+        ) { word, isPlaying, settings ->
+            PlaybackUiState(
+                currentWord = word,
+                isPlaying = isPlaying,
+                showCard = settings.showCardDuringPlayback && word != null,
+            )
+        }.stateIn(scope, SharingStarted.Eagerly, PlaybackUiState())
+    } ?: MutableStateFlow(PlaybackUiState())
+
+    /**
+     * Велика кнопка плей у хедері (історія 25, R42). Нічого не грає — стартує
+     * дефолтний словник активної вкладки; уже грає — та сама кнопка перемикає
+     * пауза/відтворити (той самий ефект, що й кнопка мініплеєра, 08).
+     * Порожній дефолтний словник (історія 27/R43.1) — кнопка неактивна в UI,
+     * тут теж no-op, щоб не впасти на випадковому подвійному натисканні.
+     */
+    fun onPlayHeaderClick() {
+        val controller = playback ?: return
+        val state = playbackUiState.value
+        when {
+            !state.isActive -> {
+                val defaultDictionaryId = uiState.value.defaultItem?.dictionary?.id ?: return
+                controller.start(defaultDictionaryId)
+            }
+            state.isPlaying -> controller.pause()
+            else -> controller.resume()
+        }
+    }
+
+    /** Стоп з екрана словників (критерій приймання тікета 10) — той самий ефект, що й у мініплеєра (08). */
+    fun onStopPlaybackClick() {
+        playback?.stop()
     }
 
     // --- Деталі словника (тікет 07, історія 38/R47) ---------------------------------------

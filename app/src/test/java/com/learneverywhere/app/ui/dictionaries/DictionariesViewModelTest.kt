@@ -2,6 +2,7 @@ package com.learneverywhere.app.ui.dictionaries
 
 import com.learneverywhere.app.data.model.DictionaryLanguage
 import com.learneverywhere.app.data.model.MainLanguage
+import com.learneverywhere.app.data.model.WordEntry
 import com.learneverywhere.app.settings.AppSettings
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -236,5 +237,125 @@ class DictionariesViewModelTest {
 
             viewModel.setWordSearchQuery("стіл")
             assertEquals(listOf("стілець"), viewModel.detailUiState.value?.filteredWords?.map { it.ukrainian })
+        }
+
+    // --- Плей у хедері (тікет 10, критерії приймання 10-playback-wiring.md) -----------------
+
+    @Test
+    fun `play button starts the default dictionary of the active tab`() = runTest(UnconfinedTestDispatcher()) {
+        val repository = FakeDictionaryRepository()
+        val dictionary = repository.createDictionary(DictionaryLanguage.GERMAN, "Deutsch")
+        val playback = FakePlaybackActions()
+        val viewModel = DictionariesViewModel(
+            repository,
+            FakeSettingsRepository(AppSettings(mainLanguage = MainLanguage.GERMAN)),
+            backgroundScope,
+            playback,
+        )
+
+        viewModel.onPlayHeaderClick()
+
+        assertEquals(dictionary.id, playback.startedDictionaryId)
+        assertTrue(viewModel.playbackUiState.value.isPlaying)
+    }
+
+    @Test
+    fun `play button click while playing pauses, click again resumes`() = runTest(UnconfinedTestDispatcher()) {
+        val repository = FakeDictionaryRepository()
+        repository.createDictionary(DictionaryLanguage.GERMAN, "Deutsch")
+        val playback = FakePlaybackActions()
+        val viewModel = DictionariesViewModel(
+            repository,
+            FakeSettingsRepository(AppSettings(mainLanguage = MainLanguage.GERMAN)),
+            backgroundScope,
+            playback,
+        )
+        viewModel.onPlayHeaderClick()
+        assertTrue(viewModel.playbackUiState.value.isPlaying)
+
+        viewModel.onPlayHeaderClick()
+        assertEquals(false, viewModel.playbackUiState.value.isPlaying)
+
+        viewModel.onPlayHeaderClick()
+        assertTrue(viewModel.playbackUiState.value.isPlaying)
+    }
+
+    @Test
+    fun `play button does nothing when the active tab has no default dictionary`() = runTest(UnconfinedTestDispatcher()) {
+        val playback = FakePlaybackActions()
+        val viewModel = DictionariesViewModel(
+            FakeDictionaryRepository(),
+            FakeSettingsRepository(AppSettings(mainLanguage = MainLanguage.GERMAN)),
+            backgroundScope,
+            playback,
+        )
+
+        viewModel.onPlayHeaderClick()
+
+        assertNull(playback.startedDictionaryId)
+        assertEquals(false, viewModel.playbackUiState.value.isPlaying)
+    }
+
+    @Test
+    fun `stop from the screen stops the controller the same way the mini-player does (08)`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repository = FakeDictionaryRepository()
+            repository.createDictionary(DictionaryLanguage.GERMAN, "Deutsch")
+            val playback = FakePlaybackActions()
+            val viewModel = DictionariesViewModel(
+                repository,
+                FakeSettingsRepository(AppSettings(mainLanguage = MainLanguage.GERMAN)),
+                backgroundScope,
+                playback,
+            )
+            viewModel.onPlayHeaderClick()
+
+            viewModel.onStopPlaybackClick()
+
+            assertTrue(playback.stopCalled)
+            assertNull(viewModel.playbackUiState.value.currentWord)
+        }
+
+    @Test
+    fun `card is shown only when showCardDuringPlayback is enabled and something is playing (R44)`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repository = FakeDictionaryRepository()
+            repository.createDictionary(DictionaryLanguage.GERMAN, "Deutsch")
+            val playback = FakePlaybackActions()
+            val settings = FakeSettingsRepository(
+                AppSettings(mainLanguage = MainLanguage.GERMAN, showCardDuringPlayback = false),
+            )
+            val viewModel = DictionariesViewModel(repository, settings, backgroundScope, playback)
+
+            viewModel.onPlayHeaderClick()
+            assertEquals(false, viewModel.playbackUiState.value.showCard)
+
+            settings.update { it.copy(showCardDuringPlayback = true) }
+            assertTrue(viewModel.playbackUiState.value.showCard)
+
+            settings.update { it.copy(showCardDuringPlayback = false) }
+            assertEquals(false, viewModel.playbackUiState.value.showCard)
+        }
+
+    @Test
+    fun `card updates synchronously as the current word changes in the controller`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repository = FakeDictionaryRepository()
+            repository.createDictionary(DictionaryLanguage.GERMAN, "Deutsch")
+            val playback = FakePlaybackActions()
+            val viewModel = DictionariesViewModel(
+                repository,
+                FakeSettingsRepository(AppSettings(mainLanguage = MainLanguage.GERMAN, showCardDuringPlayback = true)),
+                backgroundScope,
+                playback,
+            )
+            viewModel.onPlayHeaderClick()
+            assertEquals("стіл", viewModel.playbackUiState.value.currentWord?.ukrainian)
+
+            val nextWord = WordEntry(2, 1, "стілець", "der Stuhl", null, "Das ist der Stuhl.", false)
+            playback.emitCurrentWord(nextWord)
+
+            assertEquals("стілець", viewModel.playbackUiState.value.currentWord?.ukrainian)
+            assertTrue(viewModel.playbackUiState.value.showCard)
         }
 }

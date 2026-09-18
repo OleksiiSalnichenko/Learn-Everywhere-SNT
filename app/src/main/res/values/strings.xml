@@ -40,6 +40,7 @@
     <string name="dictionaries_header_label">Дефолтний словник</string>
     <string name="dictionaries_header_no_words">Спершу додай слова</string>
     <string name="dictionaries_play_content_description">Програти дефолтний словник</string>
+    <string name="dictionaries_now_playing_label">Зараз програється</string>
 
     <string name="dictionaries_default_badge">Дефолтний</string>
     <string name="dictionaries_set_default_content_description">Зробити дефолтним</string>
@@ -118,4 +119,5 @@
     <string name="playback_pause_content_description">Пауза</string>
     <string name="playback_resume_content_description">Відтворити</string>
     <string name="playback_skip_next_content_description">Наступне слово</string>
+    <string name="playback_stop_content_description">Зупинити програвання</string>
 </resources>

@@ -62,6 +62,7 @@ import com.learneverywhere.app.LearnEverywhereApplication
 import com.learneverywhere.app.R
 import com.learneverywhere.app.data.model.DictionaryLanguage
 import com.learneverywhere.app.data.model.WordEntry
+import com.learneverywhere.app.playback.PlaybackController
 
 /**
  * Екран "Словники" (тікет 05): вкладки-прапорці, хедер з дефолтним
@@ -78,11 +79,27 @@ fun DictionariesScreen(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val application = context.applicationContext as LearnEverywhereApplication
     val scope = rememberCoroutineScope()
+    // Тікет 08 не поклав жодного `PlaybackController` в `AppContainer` (di/ —
+    // поза зоною цього тікета) — конструюємо тут, тим самим прийомом, що й
+    // `DictionariesViewModel` вище. `PlaybackController.active` підхоплюється
+    // першим: якщо програвання вже триває (стартоване до перестворення цього
+    // composable — напр. користувач перемкнув нижню вкладку і повернувся),
+    // такий самий інстанс, а не порожній новий, лишається джерелом стану.
+    val playbackController = remember {
+        PlaybackController.active ?: PlaybackController(
+            context = application,
+            dictionaryRepository = application.container.dictionaryRepository,
+            settingsRepository = application.container.settingsRepository,
+            speaker = application.container.speaker,
+            scope = scope,
+        )
+    }
     val viewModel = remember {
         DictionariesViewModel(
             dictionaryRepository = application.container.dictionaryRepository,
             settingsRepository = application.container.settingsRepository,
             scope = scope,
+            playback = playbackController,
         )
     }
 
@@ -90,6 +107,7 @@ fun DictionariesScreen(modifier: Modifier = Modifier) {
     val uiState by viewModel.uiState.collectAsState()
     val detailUiState by viewModel.detailUiState.collectAsState()
     val importDialog by viewModel.importDialog.collectAsState()
+    val playbackUiState by viewModel.playbackUiState.collectAsState()
 
     // Тікет 09 (історія 21/R10.1) — системний вибір файлу для імпорту; сам
     // парсинг і валідація JSON лишаються в `DictionaryRepository`, сюди
@@ -130,11 +148,14 @@ fun DictionariesScreen(modifier: Modifier = Modifier) {
             modifier = modifier,
             selectedLanguage = selectedLanguage,
             uiState = uiState,
+            playbackUiState = playbackUiState,
             onTabSelected = viewModel::selectTab,
             onSetDefault = viewModel::setDefault,
             onCreateDictionary = viewModel::createDictionary,
             onOpenDictionary = viewModel::openDictionary,
             onImportClick = { importFileLauncher.launch("application/json") },
+            onPlayHeaderClick = viewModel::onPlayHeaderClick,
+            onStopPlaybackClick = viewModel::onStopPlaybackClick,
         )
     }
 
@@ -154,11 +175,14 @@ private fun DictionariesContent(
     modifier: Modifier,
     selectedLanguage: DictionaryLanguage,
     uiState: DictionariesUiState,
+    playbackUiState: PlaybackUiState,
     onTabSelected: (DictionaryLanguage) -> Unit,
     onSetDefault: (Long) -> Unit,
     onCreateDictionary: (String) -> Unit,
     onOpenDictionary: (Long) -> Unit,
     onImportClick: () -> Unit,
+    onPlayHeaderClick: () -> Unit,
+    onStopPlaybackClick: () -> Unit,
 ) {
     var showAddDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -198,7 +222,12 @@ private fun DictionariesContent(
             if (uiState.items.isEmpty()) {
                 EmptyDictionariesInvite(modifier = Modifier.weight(1f))
             } else {
-                DefaultDictionaryHeader(item = uiState.defaultItem)
+                DefaultDictionaryHeader(
+                    item = uiState.defaultItem,
+                    playbackUiState = playbackUiState,
+                    onPlayClick = onPlayHeaderClick,
+                    onStopClick = onStopPlaybackClick,
+                )
                 LazyColumn(
                     modifier = Modifier.weight(1f),
                     contentPadding = PaddingValues(16.dp),
@@ -255,9 +284,22 @@ private fun LanguageTabs(
     }
 }
 
-/** Хедер з дефолтним словником і плеєм-заглушкою (історія 25/27, R42/R43.1). */
+/**
+ * Хедер з дефолтним словником і кнопкою плей (історія 25/27/28, R42/R43.1/R44).
+ * Кнопка плей: нічого не грає — стартує; грає — пауза/відтворити (та сама дія,
+ * що в мініплеєрі, 08). Поки [PlaybackUiState.isActive] — поруч з'являється
+ * кнопка стоп (критерій приймання тікета 10 — пауза/стоп доступні з екрана).
+ * Картка поточного слова — лише коли [PlaybackUiState.showCard] (налаштування
+ * 04 + справді щось грає).
+ */
 @Composable
-private fun DefaultDictionaryHeader(item: DictionaryListItem?, modifier: Modifier = Modifier) {
+private fun DefaultDictionaryHeader(
+    item: DictionaryListItem?,
+    playbackUiState: PlaybackUiState,
+    onPlayClick: () -> Unit,
+    onStopClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     if (item == null) return
     val playEnabled = item.wordCount > 0
 
@@ -271,15 +313,35 @@ private fun DefaultDictionaryHeader(item: DictionaryListItem?, modifier: Modifie
                 Text(text = stringResource(R.string.dictionaries_header_label), style = MaterialTheme.typography.bodyMedium)
                 Text(text = item.dictionary.name, style = MaterialTheme.typography.titleLarge)
             }
-            val playDescription = stringResource(R.string.dictionaries_play_content_description)
-            IconButton(
-                // Лише UI-заглушка (клікабельна) — реальне відтворення йде в тікет 08/10,
-                // тут НЕ винаходимо PlaybackController заново.
-                onClick = { /* тікет 08/10 */ },
-                enabled = playEnabled,
-                modifier = Modifier.semantics { contentDescription = playDescription },
-            ) {
-                Text(text = "▶", style = MaterialTheme.typography.headlineMedium)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (playbackUiState.isActive) {
+                    val stopDescription = stringResource(R.string.playback_stop_content_description)
+                    IconButton(
+                        onClick = onStopClick,
+                        modifier = Modifier.semantics { contentDescription = stopDescription },
+                    ) {
+                        Text(text = "⏹", style = MaterialTheme.typography.headlineSmall)
+                    }
+                }
+                val playDescription = if (playbackUiState.isActive) {
+                    stringResource(
+                        if (playbackUiState.isPlaying) {
+                            R.string.playback_pause_content_description
+                        } else {
+                            R.string.playback_resume_content_description
+                        },
+                    )
+                } else {
+                    stringResource(R.string.dictionaries_play_content_description)
+                }
+                IconButton(
+                    onClick = onPlayClick,
+                    enabled = playEnabled,
+                    modifier = Modifier.semantics { contentDescription = playDescription },
+                ) {
+                    val glyph = if (playbackUiState.isActive && playbackUiState.isPlaying) "⏸" else "▶"
+                    Text(text = glyph, style = MaterialTheme.typography.headlineMedium)
+                }
             }
         }
         if (!playEnabled) {
@@ -287,6 +349,36 @@ private fun DefaultDictionaryHeader(item: DictionaryListItem?, modifier: Modifie
                 text = stringResource(R.string.dictionaries_header_no_words),
                 style = MaterialTheme.typography.bodyMedium,
             )
+        }
+        if (playbackUiState.showCard) {
+            val word = playbackUiState.currentWord
+            if (word != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+                PlaybackWordCard(word = word)
+            }
+        }
+    }
+}
+
+/**
+ * Картка поточного слова під час програвання (історія 28, R44) — з'являється
+ * лише коли в налаштуваннях (04) увімкнено «показати картку» і щось грає;
+ * оновлюється синхронно, бо читає той самий `PlaybackController.currentWord`,
+ * що керує озвученням (`DictionariesViewModel.playbackUiState`).
+ */
+@Composable
+private fun PlaybackWordCard(word: WordEntry, modifier: Modifier = Modifier) {
+    val translations = listOfNotNull(word.translation1, word.translation2).joinToString(", ")
+    Card(modifier = modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+            Text(
+                text = stringResource(R.string.dictionaries_now_playing_label),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            Text(text = word.ukrainian, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            Text(text = translations, style = MaterialTheme.typography.titleMedium)
+            Text(text = word.example, style = MaterialTheme.typography.bodyMedium, fontStyle = FontStyle.Italic)
         }
     }
 }

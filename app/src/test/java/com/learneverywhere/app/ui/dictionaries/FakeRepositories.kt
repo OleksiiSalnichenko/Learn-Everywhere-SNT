@@ -5,10 +5,13 @@ import com.learneverywhere.app.data.model.Dictionary
 import com.learneverywhere.app.data.model.DictionaryLanguage
 import com.learneverywhere.app.data.model.WordEntry
 import com.learneverywhere.app.data.repository.DictionaryRepository
+import com.learneverywhere.app.playback.PlaybackActions
 import com.learneverywhere.app.settings.AppSettings
 import com.learneverywhere.app.settings.SettingsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 
 /**
@@ -115,5 +118,59 @@ internal class FakeSettingsRepository(initial: AppSettings = AppSettings()) : Se
 
     override suspend fun resetToDefaults() {
         state.value = AppSettings()
+    }
+}
+
+/**
+ * Тестовий дублер `PlaybackController` (тікет 10) — той самий прийом, що
+ * `FakeDictionaryRepository`/`FakeSettingsRepository`: `DictionariesViewModel`
+ * бачить лише [PlaybackActions], без справжнього `Context`/Robolectric.
+ * `startedDictionaryId` — шпигун, щоб тест міг перевірити, який саме словник
+ * попросили програти.
+ */
+internal class FakePlaybackActions : PlaybackActions {
+
+    private val _currentWord = MutableStateFlow<WordEntry?>(null)
+    override val currentWord: StateFlow<WordEntry?> = _currentWord.asStateFlow()
+
+    private val _isPlaying = MutableStateFlow(false)
+    override val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
+
+    var startedDictionaryId: Long? = null
+        private set
+    var stopCalled: Boolean = false
+        private set
+
+    override fun start(dictionaryId: Long) {
+        startedDictionaryId = dictionaryId
+        _isPlaying.value = true
+        _currentWord.value = WordEntry(
+            id = 1,
+            dictionaryId = dictionaryId,
+            ukrainian = "стіл",
+            translation1 = "der Tisch",
+            translation2 = null,
+            example = "Das ist der Tisch.",
+            isExampleGenerated = false,
+        )
+    }
+
+    override fun pause() {
+        _isPlaying.value = false
+    }
+
+    override fun resume() {
+        if (_currentWord.value != null) _isPlaying.value = true
+    }
+
+    override fun stop() {
+        stopCalled = true
+        _isPlaying.value = false
+        _currentWord.value = null
+    }
+
+    /** Тестовий хелпер — імітує зміну поточного слова під час програвання (історія 28). */
+    fun emitCurrentWord(word: WordEntry?) {
+        _currentWord.value = word
     }
 }

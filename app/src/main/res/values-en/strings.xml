@@ -40,6 +40,7 @@
     <string name="dictionaries_header_label">Default dictionary</string>
     <string name="dictionaries_header_no_words">Add some words first</string>
     <string name="dictionaries_play_content_description">Play the default dictionary</string>
+    <string name="dictionaries_now_playing_label">Now playing</string>
 
     <string name="dictionaries_default_badge">Default</string>
     <string name="dictionaries_set_default_content_description">Make default</string>
@@ -116,4 +117,5 @@
     <string name="playback_pause_content_description">Pause</string>
     <string name="playback_resume_content_description">Play</string>
     <string name="playback_skip_next_content_description">Next word</string>
+    <string name="playback_stop_content_description">Stop playback</string>
 </resources>

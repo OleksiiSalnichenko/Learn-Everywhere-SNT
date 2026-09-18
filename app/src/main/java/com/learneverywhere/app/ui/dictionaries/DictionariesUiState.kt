@@ -60,6 +60,23 @@ data class DictionaryDetailUiState(
 }
 
 /**
+ * Стан плею в хедері екрана словників (тікет 10, історії 25/28, R42/R44).
+ * `currentWord`/`isPlaying` — пряме відображення `PlaybackController` (08);
+ * `showCard` уже враховує і налаштування "показати картку" (04,
+ * `AppSettings.showCardDuringPlayback`), і те, що грати взагалі нема чого —
+ * composable не повинен сам перевіряти обидві умови.
+ */
+data class PlaybackUiState(
+    val currentWord: WordEntry? = null,
+    val isPlaying: Boolean = false,
+    val showCard: Boolean = false,
+) {
+    /** Щось грає/на паузі — хедер показує пауза/стоп замість "плей" (критерій приймання тікета 10). */
+    val isActive: Boolean
+        get() = currentWord != null
+}
+
+/**
  * Діалоги імпорту (тікет 09, історії 21/22, R10.1/R10.2). `null` у
  * [DictionariesViewModel.importDialog] — жодного діалогу не показано.
  */
