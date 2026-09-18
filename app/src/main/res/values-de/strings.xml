@@ -118,4 +118,10 @@
     <string name="playback_resume_content_description">Abspielen</string>
     <string name="playback_skip_next_content_description">Nächstes Wort</string>
     <string name="playback_stop_content_description">Wiedergabe stoppen</string>
+
+    <string name="playback_notification_channel_name">Wiedergabe</string>
+    <string name="playback_notification_channel_description">Benachrichtigung für die Wiedergabe von Wörtern im Hintergrund</string>
+    <string name="playback_notification_title">Learn Everywhere</string>
+    <string name="playback_notification_starting">Wiedergabe wird vorbereitet…</string>
+    <string name="playback_notification_now_playing">Jetzt: %1$s</string>
 </resources>

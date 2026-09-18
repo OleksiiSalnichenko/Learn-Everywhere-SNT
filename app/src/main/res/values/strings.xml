@@ -120,4 +120,10 @@
     <string name="playback_resume_content_description">Відтворити</string>
     <string name="playback_skip_next_content_description">Наступне слово</string>
     <string name="playback_stop_content_description">Зупинити програвання</string>
+
+    <string name="playback_notification_channel_name">Програвання</string>
+    <string name="playback_notification_channel_description">Сповіщення про фонове програвання слів</string>
+    <string name="playback_notification_title">Learn Everywhere</string>
+    <string name="playback_notification_starting">Готуємо програвання…</string>
+    <string name="playback_notification_now_playing">Зараз: %1$s</string>
 </resources>

@@ -1,13 +1,19 @@
 package com.learneverywhere.app.playback
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
+import android.os.Build
 import android.os.Looper
+import androidx.core.app.NotificationCompat
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
+import com.learneverywhere.app.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -28,6 +34,18 @@ import kotlinx.coroutines.flow.onEach
  * Запускається й зупиняється самим [PlaybackController] (`startForegroundService`
  * у [PlaybackController.start], `stopService` у [PlaybackController.stop]) —
  * ніхто інший не звертається до цього сервісу напряму.
+ *
+ * **Фікс тікета 13 (`ForegroundServiceDidNotStartInTimeException`):** `onCreate()`
+ * викликає [android.app.Service.startForeground] синхронно, першою дією, з базовою
+ * нотифікацією — до побудови `MediaSession` і до запиту audio focus. Раніше сервіс
+ * покладався на автоматичне просування в foreground всередині `MediaSessionService`
+ * (через `MediaNotificationManager`, що реагує на зміни стану `Player`) — цей
+ * механізм не гарантує виклику `startForeground` у межах системного таймауту
+ * (кілька секунд від `startForegroundService`), тому Android вбивав процес. Зараз
+ * `startForeground` не залежить від готовності `MediaSession`/`Player`/черги слів;
+ * актуальний вміст (поточне слово) підвантажується окремо через
+ * `NotificationManager.notify(...)` у [observeNotificationContent], коли
+ * [PlaybackController.currentWord] стає відомим.
  */
 @UnstableApi
 class PlaybackMediaService : MediaSessionService() {
@@ -60,6 +78,11 @@ class PlaybackMediaService : MediaSessionService() {
 
     override fun onCreate() {
         super.onCreate()
+        // Синхронно й негайно — до MediaSession, до Player, до audio focus. Це те,
+        // що зупиняє системний таймер ForegroundServiceDidNotStartInTimeException;
+        // усе, що йде нижче, може тривати скільки завгодно без ризику краху.
+        startForeground(NOTIFICATION_ID, buildNotification(getString(R.string.playback_notification_starting)))
+
         val controllerPlayer = ControllerBackedPlayer(Looper.getMainLooper())
         player = controllerPlayer
         mediaSession = MediaSession.Builder(this, controllerPlayer).build()
@@ -68,6 +91,7 @@ class PlaybackMediaService : MediaSessionService() {
         if (controller != null) {
             controller.currentWord.onEach { controllerPlayer.refreshState() }.launchIn(serviceScope)
             controller.isPlaying.onEach { controllerPlayer.refreshState() }.launchIn(serviceScope)
+            observeNotificationContent(controller)
         }
 
         requestAudioFocus()
@@ -85,6 +109,43 @@ class PlaybackMediaService : MediaSessionService() {
         mediaSession = null
         player = null
         super.onDestroy()
+    }
+
+    /** Оновлює вміст уже показаної нотифікації (не `startForeground` вдруге — той
+     * виклик уже відбувся синхронно в [onCreate]) щойно відомо поточне слово. */
+    private fun observeNotificationContent(controller: PlaybackController) {
+        controller.currentWord.onEach { word ->
+            val text = word?.let { getString(R.string.playback_notification_now_playing, it.ukrainian) }
+                ?: getString(R.string.playback_notification_starting)
+            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+            manager?.notify(NOTIFICATION_ID, buildNotification(text))
+        }.launchIn(serviceScope)
+    }
+
+    private fun buildNotification(contentText: String): Notification {
+        ensureNotificationChannel()
+        return NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.ic_media_play)
+            .setContentTitle(getString(R.string.playback_notification_title))
+            .setContentText(contentText)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .build()
+    }
+
+    private fun ensureNotificationChannel() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager ?: return
+        if (manager.getNotificationChannel(NOTIFICATION_CHANNEL_ID) != null) return
+        val channel = NotificationChannel(
+            NOTIFICATION_CHANNEL_ID,
+            getString(R.string.playback_notification_channel_name),
+            NotificationManager.IMPORTANCE_LOW,
+        ).apply {
+            description = getString(R.string.playback_notification_channel_description)
+        }
+        manager.createNotificationChannel(channel)
     }
 
     private fun requestAudioFocus() {
@@ -105,5 +166,10 @@ class PlaybackMediaService : MediaSessionService() {
     private fun abandonAudioFocus() {
         val manager = audioManager ?: return
         focusRequest?.let { manager.abandonAudioFocusRequest(it) }
+    }
+
+    companion object {
+        private const val NOTIFICATION_CHANNEL_ID = "playback"
+        private const val NOTIFICATION_ID = 1
     }
 }
