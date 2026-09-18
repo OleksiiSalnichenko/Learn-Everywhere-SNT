@@ -3,7 +3,9 @@ package com.learneverywhere.app.ui.settings
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import android.content.Intent
 import android.content.res.Configuration
+import android.os.Bundle
 import androidx.activity.OnBackPressedDispatcher
 import androidx.activity.OnBackPressedDispatcherOwner
 import androidx.activity.result.ActivityResultRegistry
@@ -100,6 +102,15 @@ private fun Context.findActivity(): Activity? =
  * `Activity`, знайденої `findActivity()`. Без цього делегування
  * `rememberLauncherForActivityResult` і подібні кидають `IllegalStateException`,
  * бо голий сконфігурований `Context` цих інтерфейсів не реалізує.
+ *
+ * Фікс тікета 12: так само перевизначає `startActivity(Intent)`/
+ * `startActivity(Intent, Bundle?)`, делегуючи до реальної `Activity` замість
+ * `super.startActivity(...)` (голого сконфігурованого `Context`). Без цього
+ * будь-який `context.startActivity(...)` під `InterfaceLocaleProvider`
+ * (напр. системний діалог "поділитися" при експорті словника) падає з
+ * `AndroidRuntimeException: Calling startActivity() from outside of an
+ * Activity context requires FLAG_ACTIVITY_NEW_TASK` — той самий клас багу,
+ * що й тікет 11, лише на іншому Activity-специфічному виклику.
  */
 private class ActivityAwareConfigurationContext(
     configurationContext: Context,
@@ -125,6 +136,14 @@ private class ActivityAwareConfigurationContext(
 
     override val viewModelStore: ViewModelStore
         get() = (activity as ViewModelStoreOwner).viewModelStore
+
+    override fun startActivity(intent: Intent) {
+        activity.startActivity(intent)
+    }
+
+    override fun startActivity(intent: Intent, options: Bundle?) {
+        activity.startActivity(intent, options)
+    }
 }
 
 /**

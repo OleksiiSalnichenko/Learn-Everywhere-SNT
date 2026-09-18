@@ -1,11 +1,13 @@
 package com.learneverywhere.app.ui.settings
 
+import android.content.Intent
 import android.os.Looper
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.platform.LocalContext
 import com.learneverywhere.app.MainActivity
 import java.time.Duration
 import org.junit.Assert.assertTrue
@@ -90,6 +92,50 @@ class InterfaceLocaleActivityResultRegressionTest {
         caught?.let { throw AssertionError("Composition under InterfaceLocaleProvider crashed", it) }
         assertTrue("composition never ran — test would pass vacuously", composed)
     }
+
+    /**
+     * Тікет 12 — той самий механізм поломки, інший Activity-специфічний
+     * виклик: `context.startActivity(...)` (шлях експорту,
+     * `DictionariesScreen.kt:142`, "поділитися" JSON-словником) кидав
+     * `AndroidRuntimeException: Calling startActivity() from outside of an
+     * Activity context requires FLAG_ACTIVITY_NEW_TASK`, бо `LocalContext`
+     * під `InterfaceLocaleProvider` делегував `startActivity` до голого
+     * сконфігурованого `Context` (не `Activity`) через `super.startActivity`
+     * в `ActivityAwareConfigurationContext`. Перевірено: до фіксу (без
+     * перевизначення `startActivity` у `ActivityAwareConfigurationContext`)
+     * цей тест ловить рівно цей `AndroidRuntimeException`; на фіксі —
+     * проходить.
+     */
+    @Test
+    fun `startActivity under InterfaceLocaleProvider does not crash outside of an Activity context`() {
+        val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
+        val activity = controller.get()
+        var composed = false
+        var caught: Throwable? = null
+        val previousHandler = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { _, throwable -> caught = throwable }
+
+        try {
+            activity.setContent {
+                InterfaceLocaleProvider {
+                    StartActivityProbe { composed = true }
+                }
+            }
+
+            var framesLeft = 50
+            while (!composed && caught == null && framesLeft > 0) {
+                shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(16))
+                framesLeft--
+            }
+        } finally {
+            Thread.setDefaultUncaughtExceptionHandler(previousHandler)
+            controller.pause().stop().destroy()
+            shadowOf(Looper.getMainLooper()).idle()
+        }
+
+        caught?.let { throw AssertionError("startActivity() under InterfaceLocaleProvider crashed", it) }
+        assertTrue("composition never ran — test would pass vacuously", composed)
+    }
 }
 
 /**
@@ -101,4 +147,21 @@ class InterfaceLocaleActivityResultRegressionTest {
 @Composable
 private fun ActivityResultLauncherProbe() {
     rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {}
+}
+
+/**
+ * Той самий шов, що падав у продакшні (`DictionariesScreen.kt:142`,
+ * експорт словника): `LocalContext.current.startActivity(...)` під час
+ * першої композиції, з `Intent.ACTION_SEND`, як у справжньому шляху
+ * "поділитися" (без `FLAG_ACTIVITY_NEW_TASK` — доданого вручну костиля саме
+ * так, як цього не робить продакшн-код).
+ */
+@Composable
+private fun StartActivityProbe(onStarted: () -> Unit) {
+    val context = LocalContext.current
+    SideEffect {
+        val sendIntent = Intent(Intent.ACTION_SEND).apply { type = "text/plain" }
+        context.startActivity(Intent.createChooser(sendIntent, null))
+        onStarted()
+    }
 }
