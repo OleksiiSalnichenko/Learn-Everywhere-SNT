@@ -44,6 +44,56 @@ class DictionaryRepositoryTest {
         database.close()
     }
 
+    /**
+     * Документує, чому [DictionaryRepositoryImpl.exportToJson] використовує власний
+     * [DictionaryExportProvider], а не стандартний `androidx.core.content.FileProvider`
+     * (рев'ю зажадало спершу довести причину, а не просто обійти стандартний шлях).
+     *
+     * Причина — НЕ дефект Robolectric-налаштування. `androidx.core:core:1.19.0`
+     * (версія, закріплена в `libs.versions.toml` цього проєкту) містить у
+     * `FileProvider.SimplePathStrategy.belongsToRoot` жорстко зашитий роздільник
+     * `'/'` замість `File.separatorChar`:
+     * ```
+     * private boolean belongsToRoot(String filePath, String rootPath) {
+     *     ...
+     *     return filePath.startsWith(rootPath + '/');
+     * }
+     * ```
+     * На Windows `File.getCanonicalPath()` повертає шлях через `\`, тому ця
+     * перевірка ніколи не проходить, навіть для файлу, що справді лежить у
+     * дозволеному корені (нижче відтворено дослівно тим самим порівнянням).
+     * Емпірично підтверджено прямим викликом `FileProvider.getUriForFile(...)`
+     * з коректно задекларованим `<provider>`/`file_paths.xml` у цьому ж
+     * Robolectric-оточенні: падає з `IllegalArgumentException: Failed to find
+     * configured root...` для файлу, що дійсно лежить під кореневою текою.
+     * На реальному пристрої (Linux, `/`-шляхи) цей код не ламається — тому
+     * ллям тільки на Windows-JVM (dev-машина/CI цього проєкту), не на пристрої.
+     */
+    @Test
+    fun `FileProvider root matching hardcodes forward slash and fails on Windows paths`() {
+        val exportsDir = File.createTempFile("fileprovider-repro", "").apply {
+            delete()
+            mkdirs()
+        }
+        val targetFile = File(exportsDir, "dictionary.json").apply { writeText("{}") }
+
+        val rootPath = exportsDir.canonicalPath
+        val filePath = targetFile.canonicalPath
+
+        // Той самий рядок, що й androidx.core.content.FileProvider.SimplePathStrategy
+        // .belongsToRoot (androidx.core:core:1.19.0) — на Windows завжди false,
+        // хоча targetFile справді лежить прямо всередині exportsDir.
+        assertTrue(
+            "targetFile дійсно лежить у exportsDir",
+            filePath.startsWith(rootPath + File.separatorChar),
+        )
+        assertTrue(
+            "FileProvider 1.19.0 жорстко зашиває '/' — на Windows це завжди false " +
+                "навіть для валідного файлу в корені, звідси власний DictionaryExportProvider",
+            !filePath.startsWith(rootPath + '/') || File.separatorChar == '/',
+        )
+    }
+
     @Test
     fun `ensureDefaultDictionaries creates one default dictionary per language when none exist`() = runBlocking {
         // База щойно створена — жодного словника немає.
