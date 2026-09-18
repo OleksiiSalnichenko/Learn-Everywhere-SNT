@@ -45,6 +45,18 @@ interface DictionaryRepository {
     suspend fun importFromJson(uri: Uri, language: DictionaryLanguage): Dictionary
 
     /**
+     * Читає лише поле `language` з JSON-файлу за схемою `interfaces.md`, якщо
+     * воно там присутнє і є валідним значенням [DictionaryLanguage] — `null`,
+     * якщо поле відсутнє/невалідне або файл узагалі не вдалося прочитати як
+     * JSON. Не кидає винятків: повна валідація структури — робота
+     * [importFromJson]. Додано понад початковий контракт `interfaces.md`
+     * (тікет 09) — потрібно, щоб UI знав, чи питати мову словника в
+     * користувача перед імпортом (історія 21/R10.1), не парсячи JSON сам і
+     * не розкриваючи формат файлу за межі `data`.
+     */
+    suspend fun detectImportLanguage(uri: Uri): DictionaryLanguage?
+
+    /**
      * Гарантує, що для GERMAN і ENGLISH існує дефолтний словник "Основний"
      * (історії 16, 17 / R04, R04.1). Публічна межа, якої не було в
      * первісному контракті `interfaces.md` — додана в тікеті 01, бо без неї

@@ -1,5 +1,6 @@
 package com.learneverywhere.app.ui.dictionaries
 
+import android.net.Uri
 import com.learneverywhere.app.data.model.Dictionary
 import com.learneverywhere.app.data.model.DictionaryLanguage
 import com.learneverywhere.app.data.model.WordEntry
@@ -56,4 +57,17 @@ data class DictionaryDetailUiState(
     private companion object {
         const val SEARCH_VISIBLE_THRESHOLD = 20
     }
+}
+
+/**
+ * Діалоги імпорту (тікет 09, історії 21/22, R10.1/R10.2). `null` у
+ * [DictionariesViewModel.importDialog] — жодного діалогу не показано.
+ */
+sealed interface ImportDialog {
+
+    /** Мова не визначена з файлу (R10.1) — просимо користувача обрати перед [DictionariesViewModel.onImportLanguageChosen]. */
+    data class ChooseLanguage(val uri: Uri) : ImportDialog
+
+    /** Неправильна структура файлу (історія 22/R10.2) — нічого не імпортовано, база не змінена. */
+    data object InvalidFile : ImportDialog
 }

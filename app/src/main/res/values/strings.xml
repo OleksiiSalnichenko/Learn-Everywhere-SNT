@@ -53,6 +53,11 @@
     <string name="dictionaries_empty_title">Словників ще немає</string>
     <string name="dictionaries_empty_message">Додай перший словник кнопкою «+»</string>
 
+    <string name="dictionaries_import_content_description">Імпортувати словник з файлу</string>
+    <string name="dictionaries_import_choose_language_title">Яка мова словника?</string>
+    <string name="dictionaries_import_invalid_file_title">Не вдалося імпортувати</string>
+    <string name="dictionaries_import_invalid_file_message">Файл пошкоджений або має неправильну структуру. Нічого не імпортовано.</string>
+
     <plurals name="dictionaries_word_count">
         <item quantity="one">%d слово</item>
         <item quantity="few">%d слова</item>
@@ -65,6 +70,7 @@
     <string name="dictionary_detail_delete_dictionary_content_description">Видалити словник</string>
     <string name="dictionary_detail_edit_word_content_description">Редагувати виділене слово</string>
     <string name="dictionary_detail_delete_word_content_description">Видалити виділене слово</string>
+    <string name="dictionary_detail_export_content_description">Експортувати словник у файл</string>
     <string name="dictionary_detail_search_label">Пошук за українським словом</string>
     <string name="dictionary_detail_empty_message">Нічого не знайдено</string>
 

@@ -1,5 +1,8 @@
 package com.learneverywhere.app.ui.dictionaries
 
+import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -26,6 +29,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -71,7 +75,8 @@ import com.learneverywhere.app.data.model.WordEntry
  */
 @Composable
 fun DictionariesScreen(modifier: Modifier = Modifier) {
-    val application = LocalContext.current.applicationContext as LearnEverywhereApplication
+    val context = LocalContext.current
+    val application = context.applicationContext as LearnEverywhereApplication
     val scope = rememberCoroutineScope()
     val viewModel = remember {
         DictionariesViewModel(
@@ -84,6 +89,14 @@ fun DictionariesScreen(modifier: Modifier = Modifier) {
     val selectedLanguage by viewModel.selectedLanguage.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
     val detailUiState by viewModel.detailUiState.collectAsState()
+    val importDialog by viewModel.importDialog.collectAsState()
+
+    // Тікет 09 (історія 21/R10.1) — системний вибір файлу для імпорту; сам
+    // парсинг і валідація JSON лишаються в `DictionaryRepository`, сюди
+    // приходить лише готовий Uri обраного файлу.
+    val importFileLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let(viewModel::onImportFileSelected)
+    }
 
     // Тап на картку словника заміняє список його вмістом на тому ж екрані
     // (історія 38/R47) — окремого Compose-маршруту немає навмисно, це один екран.
@@ -99,6 +112,18 @@ fun DictionariesScreen(modifier: Modifier = Modifier) {
             onUpdateWord = viewModel::updateWord,
             onDeleteWord = viewModel::deleteWord,
             onSearchQueryChange = viewModel::setWordSearchQuery,
+            onExport = {
+                // Тікет 09 (історія 20/R10) — репозиторій пише JSON у кеш і
+                // повертає content://-Uri, тут лише системний діалог "поділитися".
+                viewModel.exportDictionary(detail.dictionary.id) { uri ->
+                    val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = "application/json"
+                        putExtra(Intent.EXTRA_STREAM, uri)
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                    context.startActivity(Intent.createChooser(sendIntent, null))
+                }
+            },
         )
     } else {
         DictionariesContent(
@@ -109,10 +134,21 @@ fun DictionariesScreen(modifier: Modifier = Modifier) {
             onSetDefault = viewModel::setDefault,
             onCreateDictionary = viewModel::createDictionary,
             onOpenDictionary = viewModel::openDictionary,
+            onImportClick = { importFileLauncher.launch("application/json") },
         )
+    }
+
+    when (val dialog = importDialog) {
+        is ImportDialog.ChooseLanguage -> ChooseImportLanguageDialog(
+            onConfirm = { language -> viewModel.onImportLanguageChosen(dialog.uri, language) },
+            onDismiss = viewModel::onDismissImportDialog,
+        )
+        ImportDialog.InvalidFile -> InvalidImportFileDialog(onDismiss = viewModel::onDismissImportDialog)
+        null -> Unit
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DictionariesContent(
     modifier: Modifier,
@@ -122,11 +158,26 @@ private fun DictionariesContent(
     onSetDefault: (Long) -> Unit,
     onCreateDictionary: (String) -> Unit,
     onOpenDictionary: (Long) -> Unit,
+    onImportClick: () -> Unit,
 ) {
     var showAddDialog by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         modifier = modifier,
+        topBar = {
+            TopAppBar(
+                title = {},
+                actions = {
+                    val importDescription = stringResource(R.string.dictionaries_import_content_description)
+                    IconButton(
+                        onClick = onImportClick,
+                        modifier = Modifier.semantics { contentDescription = importDescription },
+                    ) {
+                        Text(text = "📥", style = MaterialTheme.typography.headlineSmall)
+                    }
+                },
+            )
+        },
         floatingActionButton = {
             val addDescription = stringResource(R.string.dictionaries_add_content_description)
             FloatingActionButton(
@@ -390,6 +441,7 @@ private fun DictionaryDetailContent(
     onUpdateWord: (WordEntry) -> Unit,
     onDeleteWord: (Long) -> Unit,
     onSearchQueryChange: (String) -> Unit,
+    onExport: () -> Unit,
 ) {
     var showRenameDialog by rememberSaveable(state.dictionary.id) { mutableStateOf(false) }
     var showDeleteDictionaryConfirm by rememberSaveable(state.dictionary.id) { mutableStateOf(false) }
@@ -409,6 +461,13 @@ private fun DictionaryDetailContent(
                     }
                 },
                 actions = {
+                    val exportDescription = stringResource(R.string.dictionary_detail_export_content_description)
+                    IconButton(
+                        onClick = onExport,
+                        modifier = Modifier.semantics { contentDescription = exportDescription },
+                    ) {
+                        Text(text = "📤")
+                    }
                     val renameDescription = stringResource(R.string.dictionary_detail_rename_content_description)
                     IconButton(
                         onClick = { showRenameDialog = true },
@@ -651,6 +710,56 @@ private fun EditWordDialog(word: WordEntry, onConfirm: (WordEntry) -> Unit, onDi
         dismissButton = {
             TextButton(onClick = onDismiss) {
                 Text(text = stringResource(R.string.dictionary_detail_cancel))
+            }
+        },
+    )
+}
+
+/**
+ * Мова словника не визначена з JSON-файлу (тікет 09, історія 21/R10.1) —
+ * просимо користувача обрати одну з двох перед фактичним імпортом.
+ */
+@Composable
+private fun ChooseImportLanguageDialog(onConfirm: (DictionaryLanguage) -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = stringResource(R.string.dictionaries_import_choose_language_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                DictionaryLanguage.entries.forEach { language ->
+                    val (flag, description) = when (language) {
+                        DictionaryLanguage.GERMAN ->
+                            stringResource(R.string.dictionaries_tab_german_flag) to
+                                stringResource(R.string.dictionaries_tab_german_description)
+                        DictionaryLanguage.ENGLISH ->
+                            stringResource(R.string.dictionaries_tab_english_flag) to
+                                stringResource(R.string.dictionaries_tab_english_description)
+                    }
+                    TextButton(onClick = { onConfirm(language) }) {
+                        Text(text = "$flag $description")
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(text = stringResource(R.string.dictionaries_add_dialog_cancel))
+            }
+        },
+    )
+}
+
+/** Файл для імпорту не відповідає JSON-схемі (тікет 09, історія 22/R10.2) — нічого не імпортовано. */
+@Composable
+private fun InvalidImportFileDialog(onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = stringResource(R.string.dictionaries_import_invalid_file_title)) },
+        text = { Text(text = stringResource(R.string.dictionaries_import_invalid_file_message)) },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(text = stringResource(R.string.dictionary_detail_confirm))
             }
         },
     )

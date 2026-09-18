@@ -53,6 +53,11 @@
     <string name="dictionaries_empty_title">No dictionaries yet</string>
     <string name="dictionaries_empty_message">Add your first dictionary with the "+" button</string>
 
+    <string name="dictionaries_import_content_description">Import dictionary from file</string>
+    <string name="dictionaries_import_choose_language_title">What language is this dictionary?</string>
+    <string name="dictionaries_import_invalid_file_title">Import failed</string>
+    <string name="dictionaries_import_invalid_file_message">The file is corrupted or has the wrong structure. Nothing was imported.</string>
+
     <plurals name="dictionaries_word_count">
         <item quantity="one">%d word</item>
         <item quantity="other">%d words</item>
@@ -63,6 +68,7 @@
     <string name="dictionary_detail_delete_dictionary_content_description">Delete dictionary</string>
     <string name="dictionary_detail_edit_word_content_description">Edit selected word</string>
     <string name="dictionary_detail_delete_word_content_description">Delete selected word</string>
+    <string name="dictionary_detail_export_content_description">Export dictionary to file</string>
     <string name="dictionary_detail_search_label">Search by Ukrainian word</string>
     <string name="dictionary_detail_empty_message">Nothing found</string>
 

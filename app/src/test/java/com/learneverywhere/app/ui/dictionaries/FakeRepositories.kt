@@ -95,6 +95,9 @@ internal class FakeDictionaryRepository : DictionaryRepository {
     override suspend fun importFromJson(uri: Uri, language: DictionaryLanguage): Dictionary =
         throw UnsupportedOperationException("не потрібно для тесту DictionariesViewModel")
 
+    override suspend fun detectImportLanguage(uri: Uri): DictionaryLanguage? =
+        throw UnsupportedOperationException("не потрібно для тесту DictionariesViewModel")
+
     override suspend fun ensureDefaultDictionaries() {
         // Не потрібно для тестів цього екрана — ViewModel лише читає й перемикає дефолт.
     }

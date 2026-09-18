@@ -1,5 +1,6 @@
 package com.learneverywhere.app.data.repository
 
+import android.net.Uri
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.learneverywhere.app.data.db.AppDatabase
@@ -13,6 +14,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import java.io.File
 
 /**
  * Юніт-тест на шов `DictionaryRepository` (interfaces.md) — найважливіша
@@ -91,5 +93,59 @@ class DictionaryRepositoryTest {
         val defaults = repository.dictionaries(DictionaryLanguage.GERMAN).first().filter { it.isDefault }
         assertEquals(1, defaults.size)
         assertEquals(first.id, defaults.single().id)
+    }
+
+    // --- Тікет 09 — імпорт/експорт JSON ------------------------------------------------
+
+    @Test
+    fun `exportToJson then importFromJson recreates an identical word list`() = runBlocking {
+        val dictionary = repository.createDictionary(DictionaryLanguage.GERMAN, "Тварини")
+        repository.addWord(dictionary.id, "кіт", "die Katze", null, "Die Katze schläft.", false)
+        repository.addWord(dictionary.id, "собака", "der Hund", "der Wauwau", "Der Hund bellt.", true)
+        val originalWords = repository.words(dictionary.id).first()
+
+        val uri = repository.exportToJson(dictionary.id)
+        val imported = repository.importFromJson(uri, DictionaryLanguage.GERMAN)
+        val importedWords = repository.words(imported.id).first()
+
+        assertEquals(originalWords.size, importedWords.size)
+        originalWords.zip(importedWords).forEach { (original, actual) ->
+            assertEquals(original.ukrainian, actual.ukrainian)
+            assertEquals(original.translation1, actual.translation1)
+            assertEquals(original.translation2, actual.translation2)
+            assertEquals(original.example, actual.example)
+        }
+    }
+
+    @Test
+    fun `importFromJson with malformed file throws and leaves the database unchanged`() = runBlocking {
+        val malformedFile = File.createTempFile("malformed-import", ".json").apply { writeText("this is not json") }
+        val before = repository.dictionaries(DictionaryLanguage.GERMAN).first()
+
+        try {
+            repository.importFromJson(Uri.fromFile(malformedFile), DictionaryLanguage.GERMAN)
+            org.junit.Assert.fail("Очікувався InvalidDictionaryFileException")
+        } catch (expected: InvalidDictionaryFileException) {
+            // очікувано
+        }
+
+        assertEquals(before, repository.dictionaries(DictionaryLanguage.GERMAN).first())
+    }
+
+    @Test
+    fun `importFromJson with a word missing translation1 throws and leaves the database unchanged`() = runBlocking {
+        val missingFieldFile = File.createTempFile("missing-field-import", ".json").apply {
+            writeText("""{"dictionaryName":"Без перекладу","words":[{"ukrainian":"кіт","example":"A cat."}]}""")
+        }
+        val before = repository.dictionaries(DictionaryLanguage.ENGLISH).first()
+
+        try {
+            repository.importFromJson(Uri.fromFile(missingFieldFile), DictionaryLanguage.ENGLISH)
+            org.junit.Assert.fail("Очікувався InvalidDictionaryFileException")
+        } catch (expected: InvalidDictionaryFileException) {
+            // очікувано — обов'язкове поле "translation1" відсутнє.
+        }
+
+        assertEquals(before, repository.dictionaries(DictionaryLanguage.ENGLISH).first())
     }
 }

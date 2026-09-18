@@ -41,6 +41,19 @@
                 <action android:name="androidx.media3.session.MediaSessionService" />
             </intent-filter>
         </service>
+
+        <!-- data/ (тікет 09) — DictionaryRepository.exportToJson пише файл у кеш і
+             віддає його як content://-Uri через DictionaryExportProvider: без
+             провайдера системний діалог "поділитися" падав би з
+             FileUriExposedException (targetSdk 37 забороняє передавати
+             file://-Uri іншим застосункам через Intent). Вийшло за межі зони
+             "data/" за манифестом тікета — без цього провайдера критерій
+             приймання (реальний діалог "поділитися") нездійсненний. -->
+        <provider
+            android:name=".data.repository.DictionaryExportProvider"
+            android:authorities="${applicationId}.exportprovider"
+            android:exported="false"
+            android:grantUriPermissions="true" />
     </application>
 
 </manifest>

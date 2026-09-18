@@ -53,6 +53,11 @@
     <string name="dictionaries_empty_title">Noch keine Wörterbücher</string>
     <string name="dictionaries_empty_message">Füge dein erstes Wörterbuch über „+“ hinzu</string>
 
+    <string name="dictionaries_import_content_description">Wörterbuch aus Datei importieren</string>
+    <string name="dictionaries_import_choose_language_title">Welche Sprache hat dieses Wörterbuch?</string>
+    <string name="dictionaries_import_invalid_file_title">Import fehlgeschlagen</string>
+    <string name="dictionaries_import_invalid_file_message">Die Datei ist beschädigt oder hat die falsche Struktur. Es wurde nichts importiert.</string>
+
     <plurals name="dictionaries_word_count">
         <item quantity="one">%d Wort</item>
         <item quantity="other">%d Wörter</item>
@@ -63,6 +68,7 @@
     <string name="dictionary_detail_delete_dictionary_content_description">Wörterbuch löschen</string>
     <string name="dictionary_detail_edit_word_content_description">Ausgewähltes Wort bearbeiten</string>
     <string name="dictionary_detail_delete_word_content_description">Ausgewähltes Wort löschen</string>
+    <string name="dictionary_detail_export_content_description">Wörterbuch in Datei exportieren</string>
     <string name="dictionary_detail_search_label">Suche nach ukrainischem Wort</string>
     <string name="dictionary_detail_empty_message">Nichts gefunden</string>
 

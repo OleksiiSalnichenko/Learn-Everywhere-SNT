@@ -1,10 +1,12 @@
 package com.learneverywhere.app.ui.dictionaries
 
+import android.net.Uri
 import com.learneverywhere.app.data.model.Dictionary
 import com.learneverywhere.app.data.model.DictionaryLanguage
 import com.learneverywhere.app.data.model.MainLanguage
 import com.learneverywhere.app.data.model.WordEntry
 import com.learneverywhere.app.data.repository.DictionaryRepository
+import com.learneverywhere.app.data.repository.InvalidDictionaryFileException
 import com.learneverywhere.app.settings.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -153,6 +155,62 @@ class DictionariesViewModel(
     fun deleteWord(wordId: Long) {
         scope.launch { dictionaryRepository.deleteWord(wordId) }
         if (selectedWordId.value == wordId) selectedWordId.value = null
+    }
+
+    // --- Імпорт/експорт JSON (тікет 09, історії 20-22/R10, R10.1, R10.2) -----------------
+
+    private val _importDialog = MutableStateFlow<ImportDialog?>(null)
+    val importDialog: StateFlow<ImportDialog?> = _importDialog
+
+    /**
+     * Кнопка експорту в деталях словника (07) — репозиторій готує JSON-файл і
+     * повертає його Uri; [onReady] будує системний Intent "поділитися" — те,
+     * як саме показати діалог, лишається UI (composable), не ViewModel.
+     */
+    fun exportDictionary(dictionaryId: Long, onReady: (Uri) -> Unit) {
+        scope.launch {
+            val uri = dictionaryRepository.exportToJson(dictionaryId)
+            onReady(uri)
+        }
+    }
+
+    /**
+     * Кнопка імпорту (05) обрала файл через системний вибір — визначаємо мову
+     * з файлу (R10.1); якщо там її нема чи вона невалідна, питаємо
+     * користувача через [ImportDialog.ChooseLanguage] замість негайного імпорту.
+     */
+    fun onImportFileSelected(uri: Uri) {
+        scope.launch {
+            val detectedLanguage = dictionaryRepository.detectImportLanguage(uri)
+            if (detectedLanguage != null) {
+                performImport(uri, detectedLanguage)
+            } else {
+                _importDialog.value = ImportDialog.ChooseLanguage(uri)
+            }
+        }
+    }
+
+    /** Користувач обрав мову в діалозі [ImportDialog.ChooseLanguage]. */
+    fun onImportLanguageChosen(uri: Uri, language: DictionaryLanguage) {
+        performImport(uri, language)
+    }
+
+    /** Закриває будь-який діалог імпорту (скасування вибору мови або закриття повідомлення про помилку). */
+    fun onDismissImportDialog() {
+        _importDialog.value = null
+    }
+
+    private fun performImport(uri: Uri, language: DictionaryLanguage) {
+        scope.launch {
+            try {
+                dictionaryRepository.importFromJson(uri, language)
+                _importDialog.value = null
+            } catch (e: InvalidDictionaryFileException) {
+                // Неправильна структура файлу (історія 22/R10.2) — репозиторій
+                // гарантує, що до цього моменту в базу нічого не записано.
+                _importDialog.value = ImportDialog.InvalidFile
+            }
+        }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
