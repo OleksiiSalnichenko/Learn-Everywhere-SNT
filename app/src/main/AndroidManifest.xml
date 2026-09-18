@@ -54,6 +54,21 @@
             android:authorities="${applicationId}.exportprovider"
             android:exported="false"
             android:grantUriPermissions="true" />
+
+        <!-- Не використовується жодним продакшн-кодом (exportToJson працює через
+             DictionaryExportProvider вище) — стандартна декларація androidx.core.content.FileProvider,
+             потрібна лише щоб DictionaryRepositoryTest міг реально викликати
+             FileProvider.getUriForFile(...) і задокументувати, чому продакшн-код
+             не використовує стандартний провайдер (тікет 09, рев'ю). -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 
 </manifest>

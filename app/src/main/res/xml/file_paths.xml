@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Не використовується жодним продакшн-кодом застосунку (DictionaryRepositoryImpl.exportToJson
+     працює через DictionaryExportProvider, не через FileProvider). Стандартна конфігурація
+     androidx.core.content.FileProvider, потрібна лише для того, щоб реально викликати
+     FileProvider.getUriForFile(...) в тесті DictionaryRepositoryTest, який документує,
+     чому продакшн-код не використовує стандартний провайдер (тікет 09, рев'ю). -->
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <cache-path name="exports" path="exports/" />
+</paths>

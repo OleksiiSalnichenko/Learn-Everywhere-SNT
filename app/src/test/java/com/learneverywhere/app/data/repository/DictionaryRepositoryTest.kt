@@ -47,50 +47,50 @@ class DictionaryRepositoryTest {
     /**
      * Документує, чому [DictionaryRepositoryImpl.exportToJson] використовує власний
      * [DictionaryExportProvider], а не стандартний `androidx.core.content.FileProvider`
-     * (рев'ю зажадало спершу довести причину, а не просто обійти стандартний шлях).
+     * (рев'ю зажадало доказу на справжньому виклику бібліотеки, не на реконструкції
+     * її логіки поза нею).
      *
-     * Причина — НЕ дефект Robolectric-налаштування. `androidx.core:core:1.19.0`
-     * (версія, закріплена в `libs.versions.toml` цього проєкту) містить у
-     * `FileProvider.SimplePathStrategy.belongsToRoot` жорстко зашитий роздільник
-     * `'/'` замість `File.separatorChar`:
-     * ```
-     * private boolean belongsToRoot(String filePath, String rootPath) {
-     *     ...
-     *     return filePath.startsWith(rootPath + '/');
-     * }
-     * ```
-     * На Windows `File.getCanonicalPath()` повертає шлях через `\`, тому ця
-     * перевірка ніколи не проходить, навіть для файлу, що справді лежить у
-     * дозволеному корені (нижче відтворено дослівно тим самим порівнянням).
-     * Емпірично підтверджено прямим викликом `FileProvider.getUriForFile(...)`
-     * з коректно задекларованим `<provider>`/`file_paths.xml` у цьому ж
-     * Robolectric-оточенні: падає з `IllegalArgumentException: Failed to find
-     * configured root...` для файлу, що дійсно лежить під кореневою текою.
-     * На реальному пристрої (Linux, `/`-шляхи) цей код не ламається — тому
-     * ллям тільки на Windows-JVM (dev-машина/CI цього проєкту), не на пристрої.
+     * Реально викликає `FileProvider.getUriForFile(context, authority, file)` для
+     * файлу, що дійсно лежить у корені, задекларованому стандартною конфігурацією
+     * (`<provider>` + `res/xml/file_paths.xml` в `AndroidManifest.xml` — та сама
+     * декларація, яку продакшн-код використовував би, якби ми обрали FileProvider).
+     * Той провайдер не підключений до жодного продакшн-шляху — існує лише для
+     * цього тесту.
+     *
+     * На Windows-JVM (dev-машина/CI цього проєкту) `androidx.core:core:1.19.0`
+     * (версія, закріплена в `libs.versions.toml`) кидає тут `IllegalArgumentException`,
+     * бо `FileProvider.SimplePathStrategy.belongsToRoot` жорстко зашиває `'/'`
+     * замість `File.separatorChar`, а `File.getCanonicalPath()` на Windows повертає
+     * шлях через `\`. Це підтверджено окремо: meta-data і корінь резолвляться
+     * коректно (сам провайдер знаходиться, `file_paths.xml` парситься), падає лише
+     * фінальне порівняння шляхів — тобто це дефект бібліотеки, не маніфесту/конфігурації.
+     * На реальному пристрої (Linux, `/`-шляхи) цей виклик не ламається.
      */
     @Test
-    fun `FileProvider root matching hardcodes forward slash and fails on Windows paths`() {
-        val exportsDir = File.createTempFile("fileprovider-repro", "").apply {
-            delete()
-            mkdirs()
-        }
+    fun `FileProvider getUriForFile throws for a file genuinely inside the configured root`() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val exportsDir = File(context.cacheDir, "exports").apply { mkdirs() }
         val targetFile = File(exportsDir, "dictionary.json").apply { writeText("{}") }
 
-        val rootPath = exportsDir.canonicalPath
-        val filePath = targetFile.canonicalPath
+        val thrown = try {
+            val uri = androidx.core.content.FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.fileprovider",
+                targetFile,
+            )
+            org.junit.Assert.fail("FileProvider повернув $uri без винятку для $targetFile")
+            null
+        } catch (e: IllegalArgumentException) {
+            e
+        }
 
-        // Той самий рядок, що й androidx.core.content.FileProvider.SimplePathStrategy
-        // .belongsToRoot (androidx.core:core:1.19.0) — на Windows завжди false,
-        // хоча targetFile справді лежить прямо всередині exportsDir.
+        // Зафіксовано як є: якщо цей assert колись впаде (бібліотеку полагодили),
+        // це сигнал прибрати DictionaryExportProvider і перейти на стандартний FileProvider.
         assertTrue(
-            "targetFile дійсно лежить у exportsDir",
-            filePath.startsWith(rootPath + File.separatorChar),
-        )
-        assertTrue(
-            "FileProvider 1.19.0 жорстко зашиває '/' — на Windows це завжди false " +
-                "навіть для валідного файлу в корені, звідси власний DictionaryExportProvider",
-            !filePath.startsWith(rootPath + '/') || File.separatorChar == '/',
+            "Очікувався IllegalArgumentException(\"Failed to find configured root...\") від " +
+                "справжнього FileProvider.getUriForFile для файлу всередині дозволеного кореня; " +
+                "отримано: $thrown",
+            thrown?.message?.contains("Failed to find configured root") == true,
         )
     }
 
