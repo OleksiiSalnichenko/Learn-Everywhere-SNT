@@ -207,6 +207,19 @@ JSON (імпорт/експорт):
 - JSON-схема — як у спеці: `{ dictionaryName, language, words: [{ ukrainian, translation1, translation2, example }] }`;
   імпортовані слова завжди `isExampleGenerated = false` (поза схемою)
 
+## З таска 10 — плей і картка на екрані словників
+
+- `playback.PlaybackActions(currentWord: StateFlow<WordEntry?>, isPlaying: StateFlow<Boolean>,
+  start(dictId), pause(), resume(), stop())` — новий вузький інтерфейс; `PlaybackController`
+  (таск 08) тепер його реалізує
+- `DictionariesViewModel(dictionaryRepository, settingsRepository, scope, playback: PlaybackActions? = null)`
+  — новий опційний параметр
+- `.playbackUiState: StateFlow<PlaybackUiState>`, `.onPlayHeaderClick()`, `.onStopPlaybackClick()`
+- `PlaybackUiState(currentWord, isPlaying, showCard)`, обчислюване `.isActive`
+- `PlaybackController` не підключений в `AppContainer` жодним попереднім тікетом (поза зоною
+  `di/`) — сконструйовано напряму в `DictionariesScreen` через `remember { PlaybackController.active ?: PlaybackController(...) }`,
+  той самий прийом, що й `DictionariesViewModel`
+
 ## Growing this file
 
 Після кожного зданого тікета — дописати сюди фактичні сигнатури, якщо вони відрізняються

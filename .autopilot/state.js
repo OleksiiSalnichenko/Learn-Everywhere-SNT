@@ -19,12 +19,12 @@ window.STATE =
     { "id": "briefing",  "status": "done", "startedAt": "2026-09-14T22:55:00+02:00", "finishedAt": "2026-09-14T23:09:21+02:00" },
     { "id": "spec",      "status": "done", "startedAt": "2026-09-14T23:09:21+02:00", "finishedAt": "2026-09-14T23:52:48+02:00", "note": "апрув Software Design + Stitch: ок" },
     { "id": "plan",      "status": "done", "startedAt": "2026-09-14T23:52:48+02:00", "finishedAt": "2026-09-14T23:52:48+02:00", "note": "10 тасків, ярус T3, 5 хвиль" },
-    { "id": "build",     "status": "active", "startedAt": "2026-09-14T23:52:48+02:00", "note": "9 з 10 тасків готово — хвиля 5: таск 10 наступний" },
-    { "id": "review",    "status": "pending" },
+    { "id": "build",     "status": "done", "startedAt": "2026-09-14T23:52:48+02:00", "finishedAt": "2026-09-18T00:30:00+02:00", "note": "10 з 10 тасків готово" },
+    { "id": "review",    "status": "done", "note": "по-тікетне рев'ю пройдено всіма 10; фінальний сліпий прохід — Phase 8" },
     { "id": "final",     "status": "pending" }
   ],
   "requirements": {
-    "total": 73, "done": 67, "inTicket": 6, "inSpec": 0,
+    "total": 73, "done": 66, "inTicket": 7, "inSpec": 0,
     "placeholder": 0, "deferred": 0, "dropped": 0
   },
   "tickets": [
@@ -37,7 +37,7 @@ window.STATE =
     { "id": "07", "title": "Деталі словника: перегляд і редагування", "requirements": ["R47","R48","R48.1","R49","R50","A05"], "blockedBy": ["05"], "wave": 3, "zone": ["ui/dictionaries/"], "status": "done", "startedAt": "2026-09-15T09:30:00+00:00", "finishedAt": "2026-09-15T09:55:00+00:00", "retries": 0, "repairs": 0, "handoffs": 0, "files": ["app/src/main/java/com/learneverywhere/app/ui/dictionaries/**", "app/src/test/java/com/learneverywhere/app/ui/dictionaries/**"], "tests": { "passed": 13, "failed": 0 }, "commit": "8b0f2f4" },
     { "id": "08", "title": "Рушій програвання (фоновий сервіс)", "requirements": ["R43","R43.1","R44","R45","R45.1","R69i","A02"], "blockedBy": ["01","03"], "wave": 3, "zone": ["playback/"], "status": "done", "startedAt": "2026-09-15T09:30:00+00:00", "finishedAt": "2026-09-15T10:30:00+00:00", "retries": 0, "repairs": 0, "handoffs": 0, "files": ["app/src/main/java/com/learneverywhere/app/playback/**", "app/src/test/java/com/learneverywhere/app/playback/**", "app/build.gradle.kts", "gradle/libs.versions.toml", "app/src/main/AndroidManifest.xml"], "tests": { "passed": 9, "failed": 0 }, "commit": "665abef" },
     { "id": "09", "title": "Імпорт/експорт словників (JSON)", "requirements": ["R10","R10.1","R10.2","R72i"], "blockedBy": ["07"], "wave": 4, "zone": ["data/","ui/dictionaries/"], "status": "done", "startedAt": "2026-09-18T00:00:00+02:00", "finishedAt": "2026-09-18T00:00:00+02:00", "retries": 0, "repairs": 2, "handoffs": 0, "files": ["app/src/main/java/com/learneverywhere/app/data/repository/**", "app/src/test/java/com/learneverywhere/app/data/repository/**", "app/src/main/java/com/learneverywhere/app/ui/dictionaries/**", "app/src/test/java/com/learneverywhere/app/ui/dictionaries/**", "app/src/main/res/values*/strings.xml", "app/src/main/res/xml/file_paths.xml", "app/src/main/AndroidManifest.xml"], "tests": { "passed": 66, "failed": 0 }, "commit": "65d8d18" },
-    { "id": "10", "title": "Плей і картка на екрані словників", "requirements": ["R42","R43","R44"], "blockedBy": ["07","08","09"], "wave": 5, "zone": ["ui/dictionaries/","playback/"], "status": "pending", "retries": 0, "repairs": 0, "handoffs": 0 }
+    { "id": "10", "title": "Плей і картка на екрані словників", "requirements": ["R42","R43","R44"], "blockedBy": ["07","08","09"], "wave": 5, "zone": ["ui/dictionaries/","playback/"], "status": "done", "startedAt": "2026-09-18T00:10:00+02:00", "finishedAt": "2026-09-18T00:30:00+02:00", "retries": 0, "repairs": 0, "handoffs": 0, "files": ["app/src/main/java/com/learneverywhere/app/playback/PlaybackActions.kt", "app/src/main/java/com/learneverywhere/app/playback/PlaybackController.kt", "app/src/main/java/com/learneverywhere/app/ui/dictionaries/**", "app/src/test/java/com/learneverywhere/app/ui/dictionaries/**", "app/src/main/res/values*/strings.xml"], "tests": { "passed": 72, "failed": 0 }, "commit": "417e7af" }
   ],
   "singlePass": null,
   "tests": null,
@@ -61,7 +61,10 @@ window.STATE =
     "таск09 spec — при повністю невалідному (не JSON) файлі detectImportLanguage повертає null так само, як і для валідного файлу без мови — користувачу спершу показується діалог вибору мови, і лише після вибору з'являється помилка; очікувано одразу зрозуміла помилка без зайвого кроку (не блокуюче)",
     "таск09 craft — DictionaryExportProvider (заміна на FileProvider у дозапиті): security-чутлива логіка (openFile/fileForUri, захист від виходу за межі теки) без прямого юніт-тесту (не блокуюче, повторно оцінити після дозапиту)",
     "таск09 craft — authority-суфікс \".exportprovider\" захардкоджений окремо в AndroidManifest.xml і в DictionaryRepositoryImpl.kt без спільної константи (не блокуюче, актуальність залежить від результату дозапиту)",
-    "таск09 craft — detectImportLanguage і гілка «мова не визначена → діалог» (R10.1) не покриті тестом, лише importFromJson з готовою мовою (не блокуюче)"
+    "таск09 craft — detectImportLanguage і гілка «мова не визначена → діалог» (R10.1) не покриті тестом, лише importFromJson з готовою мовою (не блокуюче)",
+    "таск10 craft+spec (обидва рецензенти незалежно) — PlaybackController конструюється в DictionariesScreen з scope = rememberCoroutineScope(), прив'язаним до життя composable; вихід з екрана словників (інша вкладка) скасує scope і тихо обірве driverJob/runLoop без виклику stop(), хоча foreground-сервіс (таск 08) мав пережити навігацію незалежно від екрана — повернення через PlaybackController.active дасть уже мертвий інстанс. Не blocking за жодним автотригером, але найслабше місце тікета — пріоритетний кандидат на фоллоуап: прив'язати контролер до Application/AppContainer, не до composable-scope",
+    "таск10 craft — конструювання PlaybackController вручну в ui/dictionaries/, а не через AppContainer/Application-scope — аналогія з DictionariesViewModel (одноразовий на composable) нерівноцінна, бо PlaybackController за задумом єдиний живий інстанс на застосунок (не блокуюче)",
+    "таск10 craft — FakePlaybackActions.start() виставляє currentWord/isPlaying синхронно, тоді як реальний PlaybackController.start() робить це асинхронно — тести на onPlayHeaderClick не бачать вікна null-currentWord і подвійного старту при швидкому подвійному натисканні (не блокуюче)"
   ],
   "reviewers": { "manifestSpec": "ab8422c261b581d39", "craft": "ade9367fc4dad81dd" },
   "blind": null
