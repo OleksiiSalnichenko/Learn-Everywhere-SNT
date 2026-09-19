@@ -27,10 +27,11 @@ export PATH="$JAVA_HOME/bin:$ANDROID_HOME/platform-tools:$PATH"
 ```
 ./gradlew assembleDebug
 ```
-Обидві команди перевірено щойно з нуля (свіжий worktree, згенерований `local.properties`):
-`testDebugUnitTest` — 72/72 зелено, `assembleDebug` — успішно. Встановлення на
-пристрій/емулятор і інструментальні (androidTest) тести не перевірялись — такого
-раннера в проєкті немає.
+Обидві команди перевірено з нуля: `testDebugUnitTest` — 74/74 зелено, `assembleDebug` —
+успішно. Застосунок також реально запускався на емуляторі (Pixel_10_Pro) — старт, мікрофон,
+захоплення слова, словники, налаштування, export, play з паузою/стопом — усе пройдено без
+краху; інструментального (androidTest) раннера в проєкті немає, тому це ручна перевірка
+через `adb`, не окремий тест-раннер.
 
 ## Структура
 
@@ -83,7 +84,7 @@ app/src/main/res/values{,-en,-de}/strings.xml   # локалізація uk/en/d
   (знайденої через `Context.findActivity()`) — без цього `rememberLauncherForActivityResult`
   нижче по дереву (мікрофон, файловий пікер) падає, див. Підводні камені.
 - Межі модулів (`data`/`translation`/`voice`/`playback`/`settings`/`ui`) і їхні публічні
-  контракти зафіксовані в `.autopilot/2026-09-14-learn-everywhere--wip/interfaces.md`.
+  контракти зафіксовані в `.autopilot/2026-09-14-learn-everywhere/interfaces.md`.
 
 ## Угоди коду
 
@@ -108,12 +109,19 @@ app/src/main/res/values{,-en,-de}/strings.xml   # локалізація uk/en/d
 ## Підводні камені
 
 - `InterfaceLocaleProvider` не можна підміняти на голий `createConfigurationContext(...)`
-  без обгортки — `rememberLauncherForActivityResult` (мікрофон, файловий пікер) шукає
-  `ActivityResultRegistryOwner` через ланцюжок `ContextWrapper`, і голий `Context` його не
-  має (`IllegalStateException: No ActivityResultRegistryOwner`, впіймано лише реальним
-  запуском на емуляторі — юніт-тести на in-memory ViewModel цього не ловлять). Регресія на
-  цей конкретний шов покрита `InterfaceLocaleActivityResultRegressionTest.kt` — якщо
-  чіпаєш `InterfaceLocale.kt`, прожени саме цей тест.
+  без обгортки — `rememberLauncherForActivityResult` і прямий `startActivity()` шукають
+  `ActivityResultRegistryOwner`/реальну `Activity` через ланцюжок `ContextWrapper`, і голий
+  `Context` їх не має (`IllegalStateException: No ActivityResultRegistryOwner`,
+  `AndroidRuntimeException` на `startActivity` — обидва впіймано лише реальним запуском на
+  емуляторі, юніт-тести на in-memory ViewModel цього не ловлять). `ActivityAwareConfigurationContext`
+  делегує обидва до `findActivity()`. Регресію покриває
+  `InterfaceLocaleActivityResultRegressionTest.kt` — якщо чіпаєш `InterfaceLocale.kt`,
+  прожени саме цей тест.
+- `PlaybackMediaService` мусить викликати `Service.startForeground(...)` синхронно, першим
+  рядком `onCreate()`, до будь-якого `suspend`/асинхронного очікування — інакше ОС вбиває
+  процес через кілька секунд (`ForegroundServiceDidNotStartInTimeException`), впіймано лише
+  реальним запуском з очікуванням 15+ секунд, не юніт-тестом. `POST_NOTIFICATIONS` не
+  запитується (API 33+) — банер програвання може бути невидимим, сам сервіс це не ламає.
 - `androidx.core:core-ktx` 1.19.0: `FileProvider.SimplePathStrategy` хардкодить `/` і падає
   під Robolectric на Windows (`IllegalArgumentException: Failed to find configured root`)
   навіть на валідному шляху — тому `DictionaryExportProvider` є власною реалізацією, не
@@ -131,9 +139,11 @@ app/src/main/res/values{,-en,-de}/strings.xml   # локалізація uk/en/d
 ## Тести
 
 - JUnit4 + Robolectric (`isIncludeAndroidResources = true`) — `app/src/test` дзеркалить
-  `app/src/main` за пакетами, 73 тести, усі зелені. Більшість — на рівні ViewModel/логіки;
-  `InterfaceLocaleActivityResultRegressionTest.kt` — єдиний, що реально рендерить
-  Compose UI на справжній `Activity` (мінімальний пробник, не повний екран).
+  `app/src/main` за пакетами, 74 тести, усі зелені. Більшість — на рівні ViewModel/логіки;
+  `InterfaceLocaleActivityResultRegressionTest.kt` реально рендерить Compose UI на справжній
+  `Activity` (мінімальний пробник, не повний екран); `PlaybackMediaServiceForegroundRegressionTest.kt`
+  перевіряє реальний Android `Service` через `Robolectric.buildService(...)`, але не
+  відтворює сам системний таймаут (лише синхронність виклику `startForeground`).
 - Публічні межі-шви для фейків: `DictionaryRepository`, `TranslationService`,
   `PlaybackController`/`PlaybackActions`, `SettingsRepository` — див.
   `ui/dictionaries/FakeRepositories.kt`, `ui/home/FakeHomeDependencies.kt`.

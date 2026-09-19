@@ -1,7 +1,7 @@
 window.STATE =
 {
   "slug": "learn-everywhere",
-  "dir": "2026-09-14-learn-everywhere--wip",
+  "dir": "2026-09-14-learn-everywhere",
   "title": "Learn Everywhere — аудіословник (Android)",
   "mode": "semi",
   "depth": "normal",
@@ -10,8 +10,8 @@ window.STATE =
   "memoryFile": "CLAUDE.md",
   "skillDir": "/c/Users/asaln/.claude/skills/autopilot",
   "startedAt": "2026-09-14T22:42:44+02:00",
-  "updatedAt": "2026-09-18T00:00:00+02:00",
-  "finishedAt": null,
+  "updatedAt": "2026-09-19T00:45:00+02:00",
+  "finishedAt": "2026-09-19T00:45:00+02:00",
   "tier": "T3",
   "stages": [
     { "id": "preflight", "status": "done", "startedAt": "2026-09-14T22:42:44+02:00", "finishedAt": "2026-09-14T22:52:00+02:00" },
@@ -19,9 +19,9 @@ window.STATE =
     { "id": "briefing",  "status": "done", "startedAt": "2026-09-14T22:55:00+02:00", "finishedAt": "2026-09-14T23:09:21+02:00" },
     { "id": "spec",      "status": "done", "startedAt": "2026-09-14T23:09:21+02:00", "finishedAt": "2026-09-14T23:52:48+02:00", "note": "апрув Software Design + Stitch: ок" },
     { "id": "plan",      "status": "done", "startedAt": "2026-09-14T23:52:48+02:00", "finishedAt": "2026-09-14T23:52:48+02:00", "note": "10 тасків, ярус T3, 5 хвиль" },
-    { "id": "build",     "status": "active", "startedAt": "2026-09-14T23:52:48+02:00", "note": "10/10 готово, але сліпе приймання знайшло критичний краш — таск 11 (репаір) у роботі" },
-    { "id": "review",    "status": "active", "note": "по-тікетне рев'ю пройдено 1-10; таск 11 ще не рецензовано" },
-    { "id": "final",     "status": "pending" }
+    { "id": "build",     "status": "done", "startedAt": "2026-09-14T23:52:48+02:00", "finishedAt": "2026-09-19T00:30:00+02:00", "note": "13/13 тасків готово (10 планових + 3 репаіри з Phase 8)" },
+    { "id": "review",    "status": "done", "note": "по-тікетне рев'ю пройдено всіма 13 тасками; сліпе приймання + подвійний незалежний смок-тест — Phase 8" },
+    { "id": "final",     "status": "done", "startedAt": "2026-09-18T00:35:00+02:00", "finishedAt": "2026-09-19T00:45:00+02:00" }
   ],
   "requirements": {
     "total": 73, "done": 66, "inTicket": 7, "inSpec": 0,
@@ -38,7 +38,9 @@ window.STATE =
     { "id": "08", "title": "Рушій програвання (фоновий сервіс)", "requirements": ["R43","R43.1","R44","R45","R45.1","R69i","A02"], "blockedBy": ["01","03"], "wave": 3, "zone": ["playback/"], "status": "done", "startedAt": "2026-09-15T09:30:00+00:00", "finishedAt": "2026-09-15T10:30:00+00:00", "retries": 0, "repairs": 0, "handoffs": 0, "files": ["app/src/main/java/com/learneverywhere/app/playback/**", "app/src/test/java/com/learneverywhere/app/playback/**", "app/build.gradle.kts", "gradle/libs.versions.toml", "app/src/main/AndroidManifest.xml"], "tests": { "passed": 9, "failed": 0 }, "commit": "665abef" },
     { "id": "09", "title": "Імпорт/експорт словників (JSON)", "requirements": ["R10","R10.1","R10.2","R72i"], "blockedBy": ["07"], "wave": 4, "zone": ["data/","ui/dictionaries/"], "status": "done", "startedAt": "2026-09-18T00:00:00+02:00", "finishedAt": "2026-09-18T00:00:00+02:00", "retries": 0, "repairs": 2, "handoffs": 0, "files": ["app/src/main/java/com/learneverywhere/app/data/repository/**", "app/src/test/java/com/learneverywhere/app/data/repository/**", "app/src/main/java/com/learneverywhere/app/ui/dictionaries/**", "app/src/test/java/com/learneverywhere/app/ui/dictionaries/**", "app/src/main/res/values*/strings.xml", "app/src/main/res/xml/file_paths.xml", "app/src/main/AndroidManifest.xml"], "tests": { "passed": 66, "failed": 0 }, "commit": "65d8d18" },
     { "id": "10", "title": "Плей і картка на екрані словників", "requirements": ["R42","R43","R44"], "blockedBy": ["07","08","09"], "wave": 5, "zone": ["ui/dictionaries/","playback/"], "status": "done", "startedAt": "2026-09-18T00:10:00+02:00", "finishedAt": "2026-09-18T00:30:00+02:00", "retries": 0, "repairs": 0, "handoffs": 0, "files": ["app/src/main/java/com/learneverywhere/app/playback/PlaybackActions.kt", "app/src/main/java/com/learneverywhere/app/playback/PlaybackController.kt", "app/src/main/java/com/learneverywhere/app/ui/dictionaries/**", "app/src/test/java/com/learneverywhere/app/ui/dictionaries/**", "app/src/main/res/values*/strings.xml"], "tests": { "passed": 72, "failed": 0 }, "commit": "417e7af" },
-    { "id": "11", "title": "Фікс: краш через InterfaceLocaleProvider (виявлено сліпим прийманням)", "requirements": [], "blockedBy": ["10"], "wave": 6, "zone": ["ui/settings/InterfaceLocale.kt"], "status": "done", "startedAt": "2026-09-18T01:00:00+02:00", "finishedAt": "2026-09-18T02:00:00+02:00", "retries": 0, "repairs": 0, "handoffs": 0, "files": ["app/src/main/java/com/learneverywhere/app/ui/settings/InterfaceLocale.kt", "app/src/test/java/com/learneverywhere/app/ui/settings/InterfaceLocaleActivityResultRegressionTest.kt"], "tests": { "passed": 73, "failed": 0 }, "commit": "6c393bb" }
+    { "id": "11", "title": "Фікс: краш через InterfaceLocaleProvider (виявлено сліпим прийманням)", "requirements": [], "blockedBy": ["10"], "wave": 6, "zone": ["ui/settings/InterfaceLocale.kt"], "status": "done", "startedAt": "2026-09-18T01:00:00+02:00", "finishedAt": "2026-09-18T02:00:00+02:00", "retries": 0, "repairs": 0, "handoffs": 0, "files": ["app/src/main/java/com/learneverywhere/app/ui/settings/InterfaceLocale.kt", "app/src/test/java/com/learneverywhere/app/ui/settings/InterfaceLocaleActivityResultRegressionTest.kt"], "tests": { "passed": 73, "failed": 0 }, "commit": "6c393bb" },
+    { "id": "12", "title": "Фікс: краш Export (startActivity поза Activity-контекстом)", "requirements": ["R10"], "blockedBy": ["11"], "wave": 7, "zone": ["ui/dictionaries/","ui/settings/InterfaceLocale.kt"], "status": "done", "startedAt": "2026-09-18T02:30:00+02:00", "finishedAt": "2026-09-19T00:00:00+02:00", "retries": 0, "repairs": 1, "handoffs": 0, "files": ["app/src/main/java/com/learneverywhere/app/ui/settings/InterfaceLocale.kt", "app/src/test/java/com/learneverywhere/app/ui/settings/InterfaceLocaleActivityResultRegressionTest.kt"], "tests": { "passed": 74, "failed": 0 }, "commit": "41466ad" },
+    { "id": "13", "title": "Фікс: краш застосунку при Play (ForegroundServiceDidNotStartInTimeException)", "requirements": ["R43","R44"], "blockedBy": ["10"], "wave": 7, "zone": ["playback/"], "status": "done", "startedAt": "2026-09-18T02:30:00+02:00", "finishedAt": "2026-09-19T00:00:00+02:00", "retries": 0, "repairs": 0, "handoffs": 0, "files": ["app/src/main/java/com/learneverywhere/app/playback/PlaybackMediaService.kt", "app/src/main/res/values*/strings.xml", "app/src/test/java/com/learneverywhere/app/playback/PlaybackMediaServiceForegroundRegressionTest.kt"], "tests": { "passed": 74, "failed": 0 }, "commit": "9142724" }
   ],
   "singlePass": null,
   "tests": null,
@@ -66,10 +68,17 @@ window.STATE =
     "таск10 craft+spec (обидва рецензенти незалежно) — PlaybackController конструюється в DictionariesScreen з scope = rememberCoroutineScope(), прив'язаним до життя composable; вихід з екрана словників (інша вкладка) скасує scope і тихо обірве driverJob/runLoop без виклику stop(), хоча foreground-сервіс (таск 08) мав пережити навігацію незалежно від екрана — повернення через PlaybackController.active дасть уже мертвий інстанс. Не blocking за жодним автотригером, але найслабше місце тікета — пріоритетний кандидат на фоллоуап: прив'язати контролер до Application/AppContainer, не до composable-scope",
     "таск10 craft — конструювання PlaybackController вручну в ui/dictionaries/, а не через AppContainer/Application-scope — аналогія з DictionariesViewModel (одноразовий на composable) нерівноцінна, бо PlaybackController за задумом єдиний живий інстанс на застосунок (не блокуюче)",
     "таск10 craft — FakePlaybackActions.start() виставляє currentWord/isPlaying синхронно, тоді як реальний PlaybackController.start() робить це асинхронно — тести на onPlayHeaderClick не бачать вікна null-currentWord і подвійного старту при швидкому подвійному натисканні (не блокуюче)",
-    "таск11 craft — InterfaceLocaleActivityResultRegressionTest.kt: поллінг-цикл framesLeft=50 по 16мс замість детермінованого сигналу завершення композиції — крихко на дуже повільному CI (не блокуюче)"
+    "таск11 craft — InterfaceLocaleActivityResultRegressionTest.kt: поллінг-цикл framesLeft=50 по 16мс замість детермінованого сигналу завершення композиції — крихко на дуже повільному CI (не блокуюче)",
+    "таск13 craft — ручний синхронний startForeground у PlaybackMediaService співіснує з автоматичним просуванням media3 (MediaNotificationManager всередині MediaSessionService), яке ніде не вимкнене — дві незалежні нотифікаційні системи можуть конфліктувати, не покрито тестом (не блокуюче, вартий окремого розгляду)",
+    "таск13 craft — POST_NOTIFICATIONS не запитується (API 33+) — startForeground і сам сервіс працюють, але користувач може не побачити нотифікацію про фонове програвання (не блокуюче, UX-пробіл)",
+    "таск13 craft — regression-тест доводить лише синхронний виклик startForeground(...), не сам системний таймаут ForegroundServiceDidNotStartInTimeException (Robolectric його не відтворює) — реальний доказ це живий запуск на емуляторі, не тест (не блокуюче)",
+    "таск12 craft — ActivityAwareConfigurationContext росте реактивно по одному Activity-виклику за раз; 5 інтерфейсних делегатів можна згорнути через Kotlin `by activity` замість ручних гетерів (не блокуюче)"
   ],
-  "reviewers": { "manifestSpec": "ab8422c261b581d39", "craft": "ade9367fc4dad81dd" },
+  "reviewers": { "manifestSpec": "a26f5abd68580845e", "craft": "a27d121ffa1a5f5c1", "note": "оригінальні рецензенти попередньої сесії не пережили перезапуск — ці двоє спавнені заново на початку цієї сесії (таск 09) і тримались живими крізь таски 09-13, per phases/6-review.md fallback" },
   "blind": [
-    "КРИТИЧНО (drift, підтверджено реальним запуском на емуляторі): застосунок падає одразу після заставки — java.lang.IllegalStateException: No ActivityResultRegistryOwner was provided via LocalActivityResultRegistryOwner, HomeScreen.kt:111 (мікрофонний permission-launcher). Причина: InterfaceLocaleProvider (ui/settings/InterfaceLocale.kt) обгортає весь NavHost, підміняючи LocalContext на base.createConfigurationContext(configuration) — звичайний Context, не ContextWrapper навколо Activity, тому rememberLauncherForActivityResult нижче по дереву (мікрофон у HomeScreen, файловий пікер у DictionariesScreen) не знаходить ActivityResultRegistryOwner. Жоден з 72 юніт-тестів цього не ловить — жоден не рендерить реальний Compose UI з Activity. Наслідок: користувач не бачить жодного екрана, крім заставки. Маніфест позначає більшість UI-вимог 'done' за кодом/юніт-тестами — фактично недоступні при реальному запуску, доки не полагоджено. Заведено репаіром — таск 11."
+    "КРИТИЧНО (drift, підтверджено реальним запуском на емуляторі): застосунок падає одразу після заставки — java.lang.IllegalStateException: No ActivityResultRegistryOwner was provided via LocalActivityResultRegistryOwner, HomeScreen.kt:111 (мікрофонний permission-launcher). Причина: InterfaceLocaleProvider (ui/settings/InterfaceLocale.kt) обгортає весь NavHost, підміняючи LocalContext на base.createConfigurationContext(configuration) — звичайний Context, не ContextWrapper навколо Activity, тому rememberLauncherForActivityResult нижче по дереву (мікрофон у HomeScreen, файловий пікер у DictionariesScreen) не знаходить ActivityResultRegistryOwner. Жоден з 72 юніт-тестів цього не ловить — жоден не рендерить реальний Compose UI з Activity. Наслідок: користувач не бачить жодного екрана, крім заставки. Полагоджено таском 11, підтверджено реальним запуском.",
+    "КРИТИЧНО (знайдено незалежним смок-тестом ПІСЛЯ таска 11, той самий клас бага): кнопка Export у деталях словника падала одразу — AndroidRuntimeException: Calling startActivity() from outside of an Activity context requires FLAG_ACTIVITY_NEW_TASK, DictionariesScreen.kt:142 → DictionariesViewModel.exportDictionary. ActivityAwareConfigurationContext (фікс таска 11) делегувала Owner-інтерфейси, але не перевизначала startActivity(). Полагоджено таском 12, підтверджено окремо і разом з іншими фіксами (спільний смок-тест).",
+    "КРИТИЧНО (знайдено незалежним смок-тестом): кнопка Play повністю вбивала застосунок через ~15-20с — RemoteServiceException$ForegroundServiceDidNotStartInTimeException. PlaybackMediaService не викликав startForeground() досить швидко. Програвання — ключовий сценарій застосунку. Полагоджено таском 13, підтверджено окремо і спільним смок-тестом (45+с безперервного відтворення без краху).",
+    "Підсумковий незалежний смок-тест (після тасків 11-13 разом, HEAD 9142724): повний сценарій старт→мікрофон→додавання слова→словники→export→play→45с відтворення→стоп пройдено в одній сесії застосунку без жодного FATAL/RemoteServiceException. Усі три краші підтверджено усунені разом, нових не знайдено."
   ]
 }
